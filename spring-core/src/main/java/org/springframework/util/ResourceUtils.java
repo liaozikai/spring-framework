@@ -16,15 +16,11 @@
 
 package org.springframework.util;
 
+import org.springframework.lang.Nullable;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import org.springframework.lang.Nullable;
+import java.net.*;
 
 /**
  * Utility methods for resolving resource locations to files in the
@@ -387,7 +383,8 @@ public abstract class ResourceUtils {
 	 * flag at {@code true} for JNLP based resources.
 	 * @param con the URLConnection to set the flag on
 	 */
-	public static void useCachesIfNecessary(URLConnection con) {
+	public static void
+	useCachesIfNecessary(URLConnection con) {
 		con.setUseCaches(con.getClass().getSimpleName().startsWith("JNLP"));
 	}
 

@@ -16,25 +16,26 @@
 
 package org.springframework.core.io;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+
 /**
  * {@link Resource} implementation for class path resources. Uses either a
  * given {@link ClassLoader} or a given {@link Class} for loading resources.
- *
+ *  该类是对于class path路径下资源的一种获取实现。使用给定的类加载器或者类来加载资源
  * <p>Supports resolution as {@code java.io.File} if the class path
  * resource resides in the file system, but not for resources in a JAR.
  * Always supports resolution as URL.
- *
+ * 支持解析类路径指向文件系统的资源，而不支持解析指向JAR的资源。
+ *  始终支持url的解析
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @since 28.12.2003
@@ -56,8 +57,11 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 * Create a new {@code ClassPathResource} for {@code ClassLoader} usage.
 	 * A leading slash will be removed, as the ClassLoader resource access
 	 * methods will not accept it.
+	 *  没有ClassLoader的构造方法，前导斜线将被伤处，类加载器资源方法将不能访问它。
+	 * （不是很理解这句话）
 	 * <p>The thread context class loader will be used for
 	 * loading the resource.
+	 *  线程上下文类加载器将用于加载资源
 	 * @param path the absolute path within the class path
 	 * @see java.lang.ClassLoader#getResourceAsStream(String)
 	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
@@ -77,11 +81,15 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	public ClassPathResource(String path, @Nullable ClassLoader classLoader) {
 		Assert.notNull(path, "Path must not be null");
+		/*cleanPath就是将路径进行整理，对绝对路径，相对路径都转化为自己想要的形式
+		E:\fcxcd\khyx\webapp\WEB-INF\classes 变成E:/fcxcd/khyx/webapp/WEB-INF/classes
+		..\webapp\WEB-INF\classes 变成 ../webapp/WEB-INF/classes*/
 		String pathToUse = StringUtils.cleanPath(path);
 		if (pathToUse.startsWith("/")) {
 			pathToUse = pathToUse.substring(1);
 		}
 		this.path = pathToUse;
+		// 默认的类加载器就是线程加载器
 		this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
 	}
 
@@ -89,6 +97,8 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 * Create a new {@code ClassPathResource} for {@code Class} usage.
 	 * The path can be relative to the given class, or absolute within
 	 * the classpath via a leading slash.
+	 *  构造器为Class的实现方式，这个路径可以是给定类的相对路径，
+	 * 	也可以是通过前导斜杠的绝对路径。
 	 * @param path relative or absolute path within the class path
 	 * @param clazz the class to load resources with
 	 * @see java.lang.Class#getResourceAsStream
@@ -134,6 +144,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 
 	/**
 	 * This implementation checks for the resolution of a resource URL.
+	 * 该实现检查解析的url资源是否存在
 	 * @see java.lang.ClassLoader#getResource(String)
 	 * @see java.lang.Class#getResource(String)
 	 */
@@ -204,6 +215,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public Resource createRelative(String relativePath) {
+		// 通过当前路径和相对路径来重新构造路径，看代码可知 path 后面跟不跟"/"影响很大
 		String pathToUse = StringUtils.applyRelativePath(this.path, relativePath);
 		return (this.clazz != null ? new ClassPathResource(pathToUse, this.clazz) :
 				new ClassPathResource(pathToUse, this.classLoader));
@@ -228,6 +240,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 		StringBuilder builder = new StringBuilder("class path resource [");
 		String pathToUse = this.path;
 		if (this.clazz != null && !pathToUse.startsWith("/")) {
+			// 该方法解析出类的包名路径
 			builder.append(ClassUtils.classPackageAsResourcePath(this.clazz));
 			builder.append('/');
 		}

@@ -16,37 +16,34 @@
 
 package org.springframework.core.io;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import java.nio.file.*;
 
 /**
  * {@link Resource} implementation for {@code java.io.File} and
  * {@code java.nio.file.Path} handles with a file system target.
  * Supports resolution as a {@code File} and also as a {@code URL}.
  * Implements the extended {@link WritableResource} interface.
- *
+ * 该Resource是针对File和 file.Path类资源的实现类，以处理文件系统资源为目标
+ * 	支持将资源解析为File和URL。该类实现了WritableResource接口。（这个接口是spring5.0才有的）
  * <p>Note: As of Spring Framework 5.0, this {@link Resource} implementation uses
  * NIO.2 API for read/write interactions. As of 5.1, it may be constructed with a
  * {@link java.nio.file.Path} handle in which case it will perform all file system
  * interactions via NIO.2, only resorting to {@link File} on {@link #getFile()}.
- *
+ * 注意，spring5.0的资源实现类使用了 nio api作为读写交互。在5.1中，这类资源可能
+ *   通过Path引用去构建，这种情况下它将通过nio2进行所有的文件交互，只有通过getFile获取文件。
+ *   （我的理解，不是很理解这段话。但是，该说明表明了这个类的实现方式和以前有很大不同，起码是
+ *   通过nio api来实现资源的获取交互，具体的可以根据下面的方法实现来理解）
  * @author Juergen Hoeller
  * @since 28.12.2003
  * @see #FileSystemResource(File)
@@ -72,6 +69,10 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * will be built underneath that root: e.g. relative path "dir2" ->
 	 * "C:/dir1/dir2". In the case of "C:/dir1", relative paths will apply
 	 * at the same directory level: relative path "dir2" -> "C:/dir2".
+	 *  从文件路径创建了一个新的FileSystemResource实例。注意：当以相对路径的方式
+	 * 	 构建的时候，需要注意这个特定路径是否以"/"结尾。例如：当前路径为“c:/dir1/”，
+	 * 	 相对路径是“dir2”，则创建时会从“c:/dir1/dir2”获取资源。若不以“/”结尾，则
+	 * 	 在“c:/dir2”路径下获取资源。（通过相对路径创建资源的时候这一条需注意，很有用）
 	 * @param path a file path
 	 * @see #FileSystemResource(Path)
 	 */
@@ -91,6 +92,9 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * use the {@link #FileSystemResource(String) constructor with a file path}
 	 * to append a trailing slash to the root path: "C:/dir1/", which indicates
 	 * this directory as root for all relative paths.
+	 *
+	 * 	通过File类实例引用创建一个FileSystemResource实例。注意，如果File创建时是new File（"C:/dir1"），
+	 * 	则相对路径dir2的真实路径是“c:/dir2”。（同path的解释一样，这里不多说了）
 	 * @param file a File handle
 	 * @see #FileSystemResource(Path)
 	 * @see #getFile()
@@ -108,6 +112,10 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * <p>In contrast to {@link PathResource}, this variant strictly follows the
 	 * general {@link FileSystemResource} conventions, in particular in terms of
 	 * path cleaning and {@link #createRelative(String)} handling.
+	 *
+	 *  通过Path实例创建一个新的FileSystemResource类，它是用过nio2而不是file来实现所有的文件系统交互。
+	 * 	 与PathResource类相反，这个变体严格遵循常规FileSystemResource的约定，尤其是在路径整理和相对路径处理
+	 * 	 这方面。
 	 * @param filePath a Path handle to a file
 	 * @since 5.1
 	 * @see #FileSystemResource(File)
@@ -128,6 +136,8 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * @param path a file path
 	 * @since 5.1.1
 	 * @see #FileSystemResource(File)
+	 *
+	 * 这个方法是FileSystemResource(String)方法的替换（不多说）
 	 */
 	public FileSystemResource(FileSystem fileSystem, String path) {
 		Assert.notNull(fileSystem, "FileSystem must not be null");
@@ -157,6 +167,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	/**
 	 * This implementation checks whether the underlying file is marked as readable
 	 * (and corresponds to an actual file with content, not to a directory).
+	 * 	 该实现检查该基础文件是否被标记为可读
 	 * @see java.io.File#canRead()
 	 * @see java.io.File#isDirectory()
 	 */
@@ -168,6 +179,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 
 	/**
 	 * This implementation opens a NIO file stream for the underlying file.
+	 * 	该实现对于当前文件打开了一个nio文件流（spring 5.0的实现）
 	 * @see java.io.FileInputStream
 	 */
 	@Override
@@ -264,6 +276,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	@Override
 	public long contentLength() throws IOException {
 		if (this.file != null) {
+			// 该方法是调用的c语言编写的本地方法，在类Win32FileSystem中，获取文件长度
 			long length = this.file.length();
 			if (length == 0L && !this.file.exists()) {
 				throw new FileNotFoundException(getDescription() +
