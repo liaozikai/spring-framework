@@ -16,17 +16,17 @@
 
 package org.springframework.core.type;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.util.MultiValueMap;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.util.MultiValueMap;
 
 /**
  * {@link AnnotationMetadata} implementation that uses standard reflection
@@ -60,6 +60,8 @@ public class StandardAnnotationMetadata extends StandardClassMetadata implements
 	 * providing the option to return any nested annotations or annotation arrays in the
 	 * form of {@link org.springframework.core.annotation.AnnotationAttributes} instead
 	 * of actual {@link Annotation} instances.
+	 * 通过给定的类创建一个新的标准注解原数据包装实例，提供以AnnotationAttributes的形式而不是实际的
+	 * Annotation实例的形式返回任何嵌套注释或注释数组的选项。
 	 * @param introspectedClass the Class to introspect
 	 * @param nestedAnnotationsAsMap return nested annotations and annotation arrays as
 	 * {@link org.springframework.core.annotation.AnnotationAttributes} for compatibility

@@ -16,9 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -26,6 +23,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
+import java.util.function.Supplier;
 
 /**
  * Standalone application context, accepting annotated classes as input - in particular
@@ -257,19 +257,24 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * Register a bean from the given bean class, deriving its metadata from
 	 * class-declared annotations, and optionally providing explicit constructor
 	 * arguments for consideration in the autowiring process.
-	 * @param beanName the name of the bean (may be {@code null})
-	 * @param annotatedClass the class of the bean
+	 * 从给定的bean类中注册一个bean，从类声明的注解中派生其元数据，
+	 * 并有选择地提供明确的构造函数参数，以供自动装配过程中考虑。
+	 * @param beanName the name of the bean (may be {@code null}) bean的名称
+	 * @param annotatedClass the class of the bean bean的类型
 	 * @param constructorArguments argument values to be fed into Spring's
 	 * constructor resolution algorithm, resolving either all arguments or just
 	 * specific ones, with the rest to be resolved through regular autowiring
 	 * (may be {@code null} or empty)
+	 * 参数值将输入到Spring的构造函数解析算法中，以解析所有参数或仅解析特定参数，
+	 * 其余参数则通过常规自动装配来解决（可以为{@code null}或为空）
 	 * @since 5.0
 	 */
 	public final <T> void registerBean(
 			@Nullable String beanName, Class<T> annotatedClass, Object... constructorArguments) {
 
+		// 执行注册操作
 		this.reader.doRegisterBean(annotatedClass, null, beanName, null,
-				bd -> {
+				bd -> {// 将所有的构造器参数都添加到构造器参数值list中
 					for (Object arg : constructorArguments) {
 						bd.getConstructorArgumentValues().addGenericArgumentValue(arg);
 					}

@@ -55,15 +55,18 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	 */
 	@Override
 	public void initApplicationContext() throws ApplicationContextException {
-		super.initApplicationContext();
-		detectHandlers();
+		super.initApplicationContext();// 调用AbstractHandlerMapper的方法，就是将拦截器适配成想要的类型，放进map中
+		detectHandlers();// 注册在当前应用上下文中找到的所有控制器
 	}
 
 	/**
 	 * Register all handlers found in the current ApplicationContext.
+	 * 注册在当前应用上下文中找到的所有控制器
 	 * <p>The actual URL determination for a handler is up to the concrete
 	 * {@link #determineUrlsForHandler(String)} implementation. A bean for
 	 * which no such URLs could be determined is simply not considered a handler.
+	 * 控制器的实际URL确定取决于具体的defineUrlsForHandler（String）实现。
+	 * 无法为其确定此类URL的bean根本不被视为控制器。（也就是实例化所有bean，但是里面有些不是控制器）
 	 * @throws org.springframework.beans.BeansException if the handler couldn't be registered
 	 * @see #determineUrlsForHandler(String)
 	 */
@@ -75,10 +78,11 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 
 		// Take any bean name that we can determine URLs for.
 		for (String beanName : beanNames) {
+			// 获取所有以“/”开头的beanName和其对应的别名的String数组
 			String[] urls = determineUrlsForHandler(beanName);
 			if (!ObjectUtils.isEmpty(urls)) {
 				// URL paths found: Let's consider it a handler.
-				registerHandler(urls, beanName);
+				registerHandler(urls, beanName);// 将url和控制器的映射放到handlerMap中
 			}
 		}
 

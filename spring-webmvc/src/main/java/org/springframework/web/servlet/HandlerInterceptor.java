@@ -16,11 +16,11 @@
 
 package org.springframework.web.servlet;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.lang.Nullable;
 import org.springframework.web.method.HandlerMethod;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Workflow interface that allows for customized handler execution chains.
@@ -82,6 +82,9 @@ public interface HandlerInterceptor {
 	 * of any number of interceptors, with the handler itself at the end.
 	 * With this method, each interceptor can decide to abort the execution chain,
 	 * typically sending a HTTP error or writing a custom response.
+	 * 控制器执行拦截。在控制映射选择合适的控制器对象后，但在控制适配器调用控制器之前调用。
+	 * DispatcherServlet处理执行链中的处理程序，该处理程序由任意数量的拦截器组成，处理程序本身位于末尾。
+	 * 通过这个方法，每个拦截器能够决定终止执行链，一般是通过发送HTTP错误或者写一个自定义的response
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
@@ -108,6 +111,8 @@ public interface HandlerInterceptor {
 	 * of any number of interceptors, with the handler itself at the end.
 	 * With this method, each interceptor can post-process an execution,
 	 * getting applied in inverse order of the execution chain.
+	 * 在控制适配器调用控制器之后，但在DispatcherServlet呈现视图之前调用。
+	 * 能够通过给定的ModelAndView暴露额外的模型对象给视图。
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
@@ -128,11 +133,13 @@ public interface HandlerInterceptor {
 	 * Callback after completion of request processing, that is, after rendering
 	 * the view. Will be called on any outcome of handler execution, thus allows
 	 * for proper resource cleanup.
+	 * 在请求过程也就是在呈现视图之后回调方法。将在处理程序执行的任何结果上被调用，从而允许适当的资源清理。
 	 * <p>Note: Will only be called if this interceptor's {@code preHandle}
 	 * method has successfully completed and returned {@code true}!
 	 * <p>As with the {@code postHandle} method, the method will be invoked on each
 	 * interceptor in the chain in reverse order, so the first interceptor will be
 	 * the last to be invoked.
+	 * 调用顺序是反着来的。第一个拦截器的回调方法反而是最后才调用的
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.

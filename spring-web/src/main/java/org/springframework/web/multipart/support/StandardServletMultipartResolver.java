@@ -16,15 +16,14 @@
 
 package org.springframework.web.multipart.support;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
-
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 
 /**
  * Standard implementation of the {@link MultipartResolver} interface,
@@ -60,8 +59,7 @@ import org.springframework.web.multipart.MultipartResolver;
  */
 public class StandardServletMultipartResolver implements MultipartResolver {
 
-	private boolean resolveLazily = false;
-
+	private boolean resolveLazily = false;// 是否延迟解析
 
 	/**
 	 * Set whether to resolve the multipart request lazily at the time of
@@ -79,6 +77,7 @@ public class StandardServletMultipartResolver implements MultipartResolver {
 
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
+		// 从reqeust的contentType属性获取值，判断是否以multipart开头
 		return StringUtils.startsWithIgnoreCase(request.getContentType(), "multipart/");
 	}
 
@@ -94,9 +93,9 @@ public class StandardServletMultipartResolver implements MultipartResolver {
 			// To be on the safe side: explicitly delete the parts,
 			// but only actual file parts (for Resin compatibility)
 			try {
-				for (Part part : request.getParts()) {
+				for (Part part : request.getParts()) {// part可能代表上传的文件或者form-data的数据
 					if (request.getFile(part.getName()) != null) {
-						part.delete();
+						part.delete();// 这里删除是删除文件
 					}
 				}
 			}

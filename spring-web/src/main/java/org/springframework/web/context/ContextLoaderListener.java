@@ -22,6 +22,8 @@ import javax.servlet.ServletContextListener;
 /**
  * Bootstrap listener to start up and shut down Spring's root {@link WebApplicationContext}.
  * Simply delegates to {@link ContextLoader} as well as to {@link ContextCleanupListener}.
+ * 引导监听器用于开启和关闭spirng的根WebApplicationContext，
+ * 简单的代理ContextLoader和ContextCleanupListener。
  *
  * <p>As of Spring 3.1, {@code ContextLoaderListener} supports injecting the root web
  * application context via the {@link #ContextLoaderListener(WebApplicationContext)}
@@ -41,13 +43,18 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 * context based on the "contextClass" and "contextConfigLocation" servlet
 	 * context-params. See {@link ContextLoader} superclass documentation for details on
 	 * default values for each.
+	 * 创建一个新的上下文加载监听器，该监听器将会创建一个基于上下文类和上下文配置位置的servlet上下文参数
+	 * 的web应用。
 	 * <p>This constructor is typically used when declaring {@code ContextLoaderListener}
 	 * as a {@code <listener>} within {@code web.xml}, where a no-arg constructor is
 	 * required.
+	 * 当在web.xml中声明上下文加载监听器作为监听器时就会用到该构造方法。该构造方法不要求参数
 	 * <p>The created application context will be registered into the ServletContext under
 	 * the attribute name {@link WebApplicationContext#ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE}
 	 * and the Spring application context will be closed when the {@link #contextDestroyed}
 	 * lifecycle method is invoked on this listener.
+	 * 创建的应用上下文将会被注册到 servlet上下文中，通过属性名WebApplicationContext。并且spring应用上下文
+	 * 将会被关闭在contextDestroyed生命周期方法在该监听器中调用的时候
 	 * @see ContextLoader
 	 * @see #ContextLoaderListener(WebApplicationContext)
 	 * @see #contextInitialized(ServletContextEvent)
@@ -97,15 +104,19 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 	/**
 	 * Initialize the root web application context.
+	 * 初始化根Web应用程序上下文。
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		// org.apache.catalina.core.StandardContext 类中调用该方法，event其实也就是有sc作为属性而已，没什么特别
+		// 其中该ServletContext是ApplicationContext。下面的方法返回WebApplicationContext，但这里没引用到
 		initWebApplicationContext(event.getServletContext());
 	}
 
 
 	/**
 	 * Close the root web application context.
+	 * 关闭根web应用程序上下文
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {

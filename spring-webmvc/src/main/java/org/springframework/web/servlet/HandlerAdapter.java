@@ -16,10 +16,10 @@
 
 package org.springframework.web.servlet;
 
+import org.springframework.lang.Nullable;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.lang.Nullable;
 
 /**
  * MVC framework SPI, allowing parameterization of the core MVC workflow.
@@ -59,12 +59,14 @@ public interface HandlerAdapter {
 	 * }
 	 * @param handler handler object to check
 	 * @return whether or not this object can use the given handler
+	 * 该对象能够使用给定的控制器
 	 */
 	boolean supports(Object handler);
 
 	/**
 	 * Use the given handler to handle this request.
 	 * The workflow that is required may vary widely.
+	 * 用给定的控制器控制请求。所需的工作流程可能相差很大。
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler handler to use. This object must have previously been passed
@@ -80,6 +82,7 @@ public interface HandlerAdapter {
 	/**
 	 * Same contract as for HttpServlet's {@code getLastModified} method.
 	 * Can simply return -1 if there's no support in the handler class.
+	 * 与HttpServlet的getLastModified方法具有相同的约定。 如果处理程序类不支持，则可以简单地返回-1。
 	 * @param request current HTTP request
 	 * @param handler handler to use
 	 * @return the lastModified value for the given handler

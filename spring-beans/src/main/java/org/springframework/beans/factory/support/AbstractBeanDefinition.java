@@ -16,14 +16,6 @@
 
 package org.springframework.beans.factory.support;
 
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-
 import org.springframework.beans.BeanMetadataAttributeAccessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -36,6 +28,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Constructor;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Base class for concrete, full-fledged {@link BeanDefinition} classes,
@@ -415,6 +411,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	/**
 	 * Return whether this definition specifies a bean class.
+	 * 返回此定义是否指定bean类。
 	 */
 	public boolean hasBeanClass() {
 		return (this.beanClass instanceof Class);
@@ -787,6 +784,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	/**
 	 * Return a factory method, if any.
+	 * 如果有的话返回工厂方法名称
 	 */
 	@Override
 	@Nullable
@@ -868,6 +866,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	/**
 	 * Return if there are method overrides defined for this bean.
+	 * 如果为此bean定义了方法重写，则返回。
 	 * @since 5.0.2
 	 */
 	public boolean hasMethodOverrides() {
@@ -1050,15 +1049,18 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	/**
 	 * Validate this bean definition.
+	 * 校验bean定义
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	public void validate() throws BeanDefinitionValidationException {
 		if (hasMethodOverrides() && getFactoryMethodName() != null) {
+			// 无法将静态工厂方法与方法替代结合使用：静态工厂方法必须创建实例
 			throw new BeanDefinitionValidationException(
 					"Cannot combine static factory method with method overrides: " +
 					"the static factory method must create the instance");
 		}
 
+		// 如果此bean是指定bean类，对重写方法进行预操作
 		if (hasBeanClass()) {
 			prepareMethodOverrides();
 		}
@@ -1070,11 +1072,11 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	public void prepareMethodOverrides() throws BeanDefinitionValidationException {
-		// Check that lookup methods exists.
+		// Check that lookup methods exists. 检查查找方法是否存在。
 		if (hasMethodOverrides()) {
 			Set<MethodOverride> overrides = getMethodOverrides().getOverrides();
 			synchronized (overrides) {
-				for (MethodOverride mo : overrides) {
+				for (MethodOverride mo : overrides) {// 对于每个重写的方法，都进行预操作
 					prepareMethodOverride(mo);
 				}
 			}
@@ -1085,6 +1087,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * Validate and prepare the given method override.
 	 * Checks for existence of a method with the specified name,
 	 * marking it as not overloaded if none found.
+	 * 校验和准备给定方法重写。检查指定名称方法的存在性，如果找不到标记为未过载
 	 * @param mo the MethodOverride object to validate
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
@@ -1095,8 +1098,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 					"Invalid method override: no method with name '" + mo.getMethodName() +
 					"' on class [" + getBeanClassName() + "]");
 		}
-		else if (count == 1) {
+		else if (count == 1) {// 只有一个count的话，进行标记，这样能够在操作过程中简化操作，如设置过载为false，那就知道只会有一个方法，就容易处理了
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
+			// 将重写标记为未过载，以避免arg类型检查的开销。
 			mo.setOverloaded(false);
 		}
 	}

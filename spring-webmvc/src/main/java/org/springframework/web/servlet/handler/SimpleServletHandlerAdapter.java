@@ -16,13 +16,13 @@
 
 package org.springframework.web.servlet.handler;
 
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Adapter to use the Servlet interface with the generic DispatcherServlet.
@@ -56,6 +56,7 @@ public class SimpleServletHandlerAdapter implements HandlerAdapter {
 
 	@Override
 	public boolean supports(Object handler) {
+		// 控制器类型是否为servlet
 		return (handler instanceof Servlet);
 	}
 
@@ -63,7 +64,6 @@ public class SimpleServletHandlerAdapter implements HandlerAdapter {
 	@Nullable
 	public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-
 		((Servlet) handler).service(request, response);
 		return null;
 	}

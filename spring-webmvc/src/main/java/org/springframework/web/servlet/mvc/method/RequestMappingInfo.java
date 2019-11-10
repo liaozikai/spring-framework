@@ -16,25 +16,18 @@
 
 package org.springframework.web.servlet.mvc.method;
 
-import java.util.List;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.Nullable;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.condition.ConsumesRequestCondition;
-import org.springframework.web.servlet.mvc.condition.HeadersRequestCondition;
-import org.springframework.web.servlet.mvc.condition.ParamsRequestCondition;
-import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
-import org.springframework.web.servlet.mvc.condition.ProducesRequestCondition;
-import org.springframework.web.servlet.mvc.condition.RequestCondition;
-import org.springframework.web.servlet.mvc.condition.RequestConditionHolder;
-import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
+import org.springframework.web.servlet.mvc.condition.*;
 import org.springframework.web.util.UrlPathHelper;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Request mapping information. Encapsulates the following request mapping conditions:
@@ -109,6 +102,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 
 	/**
 	 * Return the name for this mapping, or {@code null}.
+	 * 返回该mapping对应的名称，否则为null
 	 */
 	@Nullable
 	public String getName() {
@@ -118,6 +112,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	/**
 	 * Return the URL patterns of this {@link RequestMappingInfo};
 	 * or instance with 0 patterns (never {@code null}).
+	 * 返回RequestMappingInfo的URL模式，或者没有模式的实例，不会返回null
 	 */
 	public PatternsRequestCondition getPatternsCondition() {
 		return this.patternsCondition;
@@ -126,6 +121,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	/**
 	 * Return the HTTP request methods of this {@link RequestMappingInfo};
 	 * or instance with 0 request methods (never {@code null}).
+	 * 返回RequestMappingInfo的HTTP请求方法，或者没有请求方法的实例，不会返回null
 	 */
 	public RequestMethodsRequestCondition getMethodsCondition() {
 		return this.methodsCondition;
@@ -134,6 +130,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	/**
 	 * Return the "parameters" condition of this {@link RequestMappingInfo};
 	 * or instance with 0 parameter expressions (never {@code null}).
+	 * 返回RequestMappingInfo的参数条件，或者没参数表达式的实例，不会返回null
 	 */
 	public ParamsRequestCondition getParamsCondition() {
 		return this.paramsCondition;
@@ -142,6 +139,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	/**
 	 * Return the "headers" condition of this {@link RequestMappingInfo};
 	 * or instance with 0 header expressions (never {@code null}).
+	 * 返回RequestMappingInfo的头部环境，或者无头部表达式的实例，不会返回null
 	 */
 	public HeadersRequestCondition getHeadersCondition() {
 		return this.headersCondition;
@@ -150,6 +148,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	/**
 	 * Return the "consumes" condition of this {@link RequestMappingInfo};
 	 * or instance with 0 consumes expressions (never {@code null}).
+	 * 返回RequestMappingInfo的消费条件或者无消费表达式的实例，不会返回null
 	 */
 	public ConsumesRequestCondition getConsumesCondition() {
 		return this.consumesCondition;
@@ -158,6 +157,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	/**
 	 * Return the "produces" condition of this {@link RequestMappingInfo};
 	 * or instance with 0 produces expressions (never {@code null}).
+	 * 返回RequestMappingInfo的生产条件或者无生产表达式的实例，不会返回null
 	 */
 	public ProducesRequestCondition getProducesCondition() {
 		return this.producesCondition;
@@ -165,6 +165,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 
 	/**
 	 * Return the "custom" condition of this {@link RequestMappingInfo}, or {@code null}.
+	 * 返回RequestMappingInfo的自定义条件或者null
 	 */
 	@Nullable
 	public RequestCondition<?> getCustomCondition() {
@@ -176,6 +177,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	 * Combine "this" request mapping info (i.e. the current instance) with another request mapping info instance.
 	 * <p>Example: combine type- and method-level request mappings.
 	 * @return a new request mapping info instance; never {@code null}
+	 * 返回一个新的请求映射信息实例，不会返回null
 	 */
 	@Override
 	public RequestMappingInfo combine(RequestMappingInfo other) {
@@ -222,20 +224,25 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 		ConsumesRequestCondition consumes = this.consumesCondition.getMatchingCondition(request);
 		ProducesRequestCondition produces = this.producesCondition.getMatchingCondition(request);
 
+		// 如果任一为空，则返回 null ，表示匹配失败
 		if (methods == null || params == null || headers == null || consumes == null || produces == null) {
 			return null;
 		}
 
+		// 获取url请求实体，如果其为null，则返回null
 		PatternsRequestCondition patterns = this.patternsCondition.getMatchingCondition(request);
 		if (patterns == null) {
 			return null;
 		}
 
+		// 获取自定义的请求实体，如果其为null，则返回null
 		RequestConditionHolder custom = this.customConditionHolder.getMatchingCondition(request);
 		if (custom == null) {
 			return null;
 		}
-
+		// 创建匹配的 RequestMappingInfo 对象。
+		// 为什么要创建 RequestMappingInfo 对象呢？因为当前 RequestMappingInfo 对象，一个 methodsCondition 可以配置
+		// GET、POST、DELETE 等等条件，但是实际就匹配一个请求类型，此时 methods 只代表其匹配的那个
 		return new RequestMappingInfo(this.name, patterns,
 				methods, params, headers, consumes, produces, custom.getCondition());
 	}
@@ -250,7 +257,8 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	public int compareTo(RequestMappingInfo other, HttpServletRequest request) {
 		int result;
 		// Automatic vs explicit HTTP HEAD mapping
-		if (HttpMethod.HEAD.matches(request.getMethod())) {
+		// 自动与显式HTTP HEAD映射
+		if (HttpMethod.HEAD.matches(request.getMethod())) {// 如果是head方法
 			result = this.methodsCondition.compareTo(other.getMethodsCondition(), request);
 			if (result != 0) {
 				return result;

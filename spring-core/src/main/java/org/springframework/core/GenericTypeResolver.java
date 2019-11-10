@@ -16,18 +16,14 @@
 
 package org.springframework.core;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentReferenceHashMap;
+
+import java.lang.reflect.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Helper class for resolving generic types against type variables.
@@ -102,6 +98,8 @@ public final class GenericTypeResolver {
 	 * Resolve the single type argument of the given generic interface against
 	 * the given target class which is assumed to implement the generic interface
 	 * and possibly declare a concrete type for its type variable.
+	 * 针对给定的目标类解析给定通用接口的单一类型参数，假定该目标类实现了通用接口，
+	 * 并可能为其类型变量声明具体类型。
 	 * @param clazz the target class to check against
 	 * @param genericIfc the generic interface or superclass to resolve the type argument from
 	 * @return the resolved type of the argument, or {@code null} if not resolvable

@@ -16,24 +16,20 @@
 
 package org.springframework.web.context.support;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
-import org.springframework.context.annotation.AnnotationConfigRegistry;
-import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
-import org.springframework.context.annotation.ScopeMetadataResolver;
+import org.springframework.context.annotation.*;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.ContextLoader;
+
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * {@link org.springframework.web.context.WebApplicationContext WebApplicationContext}
@@ -218,6 +214,8 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 	 * Register a {@link org.springframework.beans.factory.config.BeanDefinition} for
 	 * any classes specified by {@link #register(Class...)} and scan any packages
 	 * specified by {@link #scan(String...)}.
+	 * 为register（Class ...）}指定的任何类注册BeanDefinition并扫描scan（String ... )。
+	 *
 	 * <p>For any values specified by {@link #setConfigLocation(String)} or
 	 * {@link #setConfigLocations(String[])}, attempt first to load each location as a
 	 * class, registering a {@code BeanDefinition} if class loading is successful,
@@ -228,6 +226,12 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 	 * <p>Configuration class bean definitions are registered with generated bean
 	 * definition names unless the {@code value} attribute is provided to the stereotype
 	 * annotation.
+	 * 对于#setConfigLocation（String）或#setConfigLocations（String []）指定的任何值，
+	 * 首先尝试将每个位置作为类加载，如果类加载成功并且类加载失败（即引发ClassNotFoundException），
+	 * 则注册BeanDefinition。 假设该值是一个包，并尝试对其进行扫描以查找带注释的类。
+	 * 启用注释配置后处理器的默认集合，例如可以使用@ Autowired，@ Required和关联的注释。
+	 * 除非将值属性提供给构造型注解，否则配置类Bean定义将使用生成的Bean定义名称进行注册。
+	 *
 	 * @param beanFactory the bean factory to load bean definitions into
 	 * @see #register(Class...)
 	 * @see #scan(String...)
@@ -239,13 +243,14 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) {
-		AnnotatedBeanDefinitionReader reader = getAnnotatedBeanDefinitionReader(beanFactory);
-		ClassPathBeanDefinitionScanner scanner = getClassPathBeanDefinitionScanner(beanFactory);
+		AnnotatedBeanDefinitionReader reader = getAnnotatedBeanDefinitionReader(beanFactory);// 通过beanFactory和标准环境生成注解bean定义阅读器
+		ClassPathBeanDefinitionScanner scanner = getClassPathBeanDefinitionScanner(beanFactory);// 通过beanFactory和标准环境生成类路径bean定义扫描器
 
-		BeanNameGenerator beanNameGenerator = getBeanNameGenerator();
+		BeanNameGenerator beanNameGenerator = getBeanNameGenerator();// 获取bean名称生成器
 		if (beanNameGenerator != null) {
 			reader.setBeanNameGenerator(beanNameGenerator);
 			scanner.setBeanNameGenerator(beanNameGenerator);
+			// bean工厂注册internalConfigurationBeanNameGenerator这个类实例
 			beanFactory.registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR, beanNameGenerator);
 		}
 

@@ -16,25 +16,6 @@
 
 package org.springframework.web.multipart.support;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import javax.mail.internet.MimeUtility;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
-
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.Nullable;
@@ -44,6 +25,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.mail.internet.MimeUtility;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * Spring MultipartHttpServletRequest adapter, wrapping a Servlet 3.0 HttpServletRequest
@@ -83,7 +72,7 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 			throws MultipartException {
 
 		super(request);
-		if (!lazyParsing) {
+		if (!lazyParsing) {// 若是非延迟解析，则马上解析
 			parseRequest(request);
 		}
 	}
@@ -91,23 +80,25 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 
 	private void parseRequest(HttpServletRequest request) {
 		try {
-			Collection<Part> parts = request.getParts();
+			Collection<Part> parts = request.getParts();// 获取请求的各个部分
 			this.multipartParameterNames = new LinkedHashSet<>(parts.size());
-			MultiValueMap<String, MultipartFile> files = new LinkedMultiValueMap<>(parts.size());
+			MultiValueMap<String, MultipartFile> files = new LinkedMultiValueMap<>(parts.size());// 定义同样长度的map
 			for (Part part : parts) {
+				// 获取各个部分中为Content-Disposition的内容
 				String headerValue = part.getHeader(HttpHeaders.CONTENT_DISPOSITION);
-				ContentDisposition disposition = ContentDisposition.parse(headerValue);
-				String filename = disposition.getFilename();
-				if (filename != null) {
-					if (filename.startsWith("=?") && filename.endsWith("?=")) {
+				ContentDisposition disposition = ContentDisposition.parse(headerValue);// 解析该头部值
+				String filename = disposition.getFilename();// 获取头部对应文件名称
+				if (filename != null) {// 文件名称不为null
+					if (filename.startsWith("=?") && filename.endsWith("?=")) {// 若是文件名称以“=?”开头并且以"?="结尾，则对文件名进行解码
 						filename = MimeDelegate.decode(filename);
 					}
-					files.add(part.getName(), new StandardMultipartFile(part, filename));
+					files.add(part.getName(), new StandardMultipartFile(part, filename));// 文件名和StandardMultipartFile适配器的映射放到map中
 				}
-				else {
+				else {// 文件名为空，则将文件名加入multipartParameterNames中。
 					this.multipartParameterNames.add(part.getName());
 				}
 			}
+			// 其实就是传输的内容分为两部分进行处理，一部分放进multipartParameterNames中，一部分放进files中，再放进父类的multipartFiles这个属性中
 			setMultipartFiles(files);
 		}
 		catch (Throwable ex) {

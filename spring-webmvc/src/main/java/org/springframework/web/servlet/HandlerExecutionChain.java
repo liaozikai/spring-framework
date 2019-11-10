@@ -16,22 +16,21 @@
 
 package org.springframework.web.servlet;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Handler execution chain, consisting of handler object and any handler interceptors.
  * Returned by HandlerMapping's {@link HandlerMapping#getHandler} method.
- *
+ * 控制执行链，办好控制器对象和控制拦截器。通过HandlerMapping的getHandler返回
  * @author Juergen Hoeller
  * @since 20.06.2003
  * @see HandlerInterceptor
@@ -61,9 +60,11 @@ public class HandlerExecutionChain {
 
 	/**
 	 * Create a new HandlerExecutionChain.
-	 * @param handler the handler object to execute
+	 * 创建一个新的控制执行链
+	 * @param handler the handler object to execute 要执行的控制器对象
 	 * @param interceptors the array of interceptors to apply
 	 * (in the given order) before the handler itself executes
+	 * 在控制器自身执行之前需要执行的拦截器数组
 	 */
 	public HandlerExecutionChain(Object handler, @Nullable HandlerInterceptor... interceptors) {
 		if (handler instanceof HandlerExecutionChain) {
@@ -127,12 +128,15 @@ public class HandlerExecutionChain {
 	 * @return {@code true} if the execution chain should proceed with the
 	 * next interceptor or the handler itself. Else, DispatcherServlet assumes
 	 * that this interceptor has already dealt with the response itself.
+	 * 应用注册拦截器的preHandle方法。如果执行链应该进行下个拦截器或者控制器本身，则返回true。
+	 * 否则，DispatcherServlet假定此拦截器已经处理了响应本身。
 	 */
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
 			for (int i = 0; i < interceptors.length; i++) {
 				HandlerInterceptor interceptor = interceptors[i];
+				// 如果拦截器预处理返回false，则触发完成后方法，也就是失败才会触发完成后方法
 				if (!interceptor.preHandle(request, response, this.handler)) {
 					triggerAfterCompletion(request, response, null);
 					return false;
@@ -145,12 +149,14 @@ public class HandlerExecutionChain {
 
 	/**
 	 * Apply postHandle methods of registered interceptors.
+	 * 注册拦截器执行后处理方法
 	 */
 	void applyPostHandle(HttpServletRequest request, HttpServletResponse response, @Nullable ModelAndView mv)
 			throws Exception {
 
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// 这里是倒过来执行的
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				HandlerInterceptor interceptor = interceptors[i];
 				interceptor.postHandle(request, response, this.handler, mv);
@@ -162,13 +168,15 @@ public class HandlerExecutionChain {
 	 * Trigger afterCompletion callbacks on the mapped HandlerInterceptors.
 	 * Will just invoke afterCompletion for all interceptors whose preHandle invocation
 	 * has successfully completed and returned true.
+	 * 在映射的HandlerInterceptor上触发afterCompletion回调。
+	 * 将仅对所有preHandle调用已成功完成并返回true的拦截器调用afterCompletion。
 	 */
 	void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex)
 			throws Exception {
 
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
-			for (int i = this.interceptorIndex; i >= 0; i--) {
+			for (int i = this.interceptorIndex; i >= 0; i--) {// 这里也是倒过来执行
 				HandlerInterceptor interceptor = interceptors[i];
 				try {
 					interceptor.afterCompletion(request, response, this.handler, ex);

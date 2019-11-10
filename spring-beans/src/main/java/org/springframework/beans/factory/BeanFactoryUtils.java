@@ -16,19 +16,15 @@
 
 package org.springframework.beans.factory;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.beans.BeansException;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.lang.annotation.Annotation;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Convenience methods operating on bean factories, in particular
@@ -318,15 +314,16 @@ public abstract class BeanFactoryUtils {
 	 * hiding corresponding beans in ancestor factories.</b> This feature allows for
 	 * 'replacing' beans by explicitly choosing the same bean name in a child factory;
 	 * the bean in the ancestor factory won't be visible then, not even for by-type lookups.
-	 * @param lbf the bean factory
-	 * @param type type of bean to match
+	 * @param lbf the bean factory bean工厂
+	 * @param type type of bean to match bean匹配的类型
 	 * @param includeNonSingletons whether to include prototype or scoped beans too
-	 * or just singletons (also applies to FactoryBeans)
+	 * or just singletons (also applies to FactoryBeans) 是否包含原型和其他范围bean，还是只是单例
 	 * @param allowEagerInit whether to initialize <i>lazy-init singletons</i> and
 	 * <i>objects created by FactoryBeans</i> (or by factory methods with a
 	 * "factory-bean" reference) for the type check. Note that FactoryBeans need to be
 	 * eagerly initialized to determine their type: So be aware that passing in "true"
 	 * for this flag will initialize FactoryBeans and "factory-bean" references.
+	 *
 	 * @return the Map of matching bean instances, or an empty Map if none
 	 * @throws BeansException if a bean could not be created
 	 * @see ListableBeanFactory#getBeansOfType(Class, boolean, boolean)

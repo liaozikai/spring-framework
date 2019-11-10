@@ -16,21 +16,20 @@
 
 package org.springframework.web.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
 /**
  * Helper class for URL path matching. Provides support for URL paths in
@@ -155,6 +154,8 @@ public class UrlPathHelper {
 	 * Return the mapping lookup path for the given request, within the current
 	 * servlet mapping if applicable, else within the web application.
 	 * <p>Detects include request URL if called within a RequestDispatcher include.
+	 * 返回给定请求的映射查找路径，如果适用，则在当前Servlet映射中，否则在Web应用程序中返回。
+	 * 如果在RequestDispatcher包含中调用，则检测包含请求URL。
 	 * @param request current HTTP request
 	 * @return the lookup path
 	 * @see #getPathWithinApplication
@@ -162,10 +163,12 @@ public class UrlPathHelper {
 	 */
 	public String getLookupPathForRequest(HttpServletRequest request) {
 		// Always use full path within current servlet context?
-		if (this.alwaysUseFullPath) {
+		// 在当前servlet上下文总是使用全路径
+		if (this.alwaysUseFullPath) {// 若是使用全路径，返回全路径
 			return getPathWithinApplication(request);
 		}
 		// Else, use path within current servlet mapping if applicable
+		// 否则，如果合适的话，在当前servlet映射中使用路径
 		String rest = getPathWithinServletMapping(request);
 		if (!"".equals(rest)) {
 			return rest;
@@ -232,14 +235,16 @@ public class UrlPathHelper {
 	/**
 	 * Return the path within the web application for the given request.
 	 * <p>Detects include request URL if called within a RequestDispatcher include.
+	 * 对于给定的请求，返回在web应用中的路径。如果在RequestDispatcher包含中调用，则检测包含请求URL。
 	 * @param request current HTTP request
 	 * @return the path within the web application
 	 */
 	public String getPathWithinApplication(HttpServletRequest request) {
-		String contextPath = getContextPath(request);
-		String requestUri = getRequestUri(request);
+		String contextPath = getContextPath(request);// 获取上下文路径
+		String requestUri = getRequestUri(request);// 获取请求uri
+		// 获取剩余部分路径
 		String path = getRemainingPath(requestUri, contextPath, true);
-		if (path != null) {
+		if (path != null) {// path不为null的话，返回path
 			// Normal case: URI contains context path.
 			return (StringUtils.hasText(path) ? path : "/");
 		}
@@ -253,6 +258,8 @@ public class UrlPathHelper {
 	 * is a match return the extra part. This method is needed because the
 	 * context path and the servlet path returned by the HttpServletRequest are
 	 * stripped of semicolon content unlike the requesUri.
+	 * 将给定的“映射”匹配到“ requestUri”的开头，如果存在匹配，则返回多余的部分。
+	 * 之所以需要此方法，是因为与requesUri不同，HttpServletRequest返回的上下文路径和servlet路径已去除分号内容。
 	 */
 	@Nullable
 	private String getRemainingPath(String requestUri, String mapping, boolean ignoreCase) {

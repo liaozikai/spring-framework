@@ -16,15 +16,6 @@
 
 package org.springframework.web.servlet.handler;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.DispatcherType;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
@@ -36,22 +27,27 @@ import org.springframework.util.PathMatcher;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.context.request.WebRequestInterceptor;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.CorsProcessor;
-import org.springframework.web.cors.CorsUtils;
-import org.springframework.web.cors.DefaultCorsProcessor;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.*;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Abstract base class for {@link org.springframework.web.servlet.HandlerMapping}
  * implementations. Supports ordering, a default handler, handler interceptors,
  * including handler interceptors mapped by path patterns.
- *
+ * HandlerMapping的抽象基类。支持排序，默认控制器，控制拦截器，
+ * 包括按路径模式映射的处理程序拦截器。
  * <p>Note: This base class does <i>not</i> support exposure of the
  * {@link #PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE}. Support for this attribute
  * is up to concrete subclasses, typically based on request URL mappings.
@@ -189,6 +185,8 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * <p>Supported interceptor types are HandlerInterceptor, WebRequestInterceptor, and MappedInterceptor.
 	 * Mapped interceptors apply only to request URLs that match its path patterns.
 	 * Mapped interceptor beans are also detected by type during initialization.
+	 * 设置拦截器以应用此处理程序映射所映射的所有处理程序。支持的拦截器类型是控制拦截器，web请求拦截器和映射拦截器。
+	 * 映射的拦截器值用于匹配它的路径模式的请求urls。映射的拦截器bean在初始化期间也按类型检测。
 	 * @param interceptors array of handler interceptors
 	 * @see #adaptInterceptor
 	 * @see org.springframework.web.servlet.HandlerInterceptor
@@ -284,14 +282,15 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 	/**
 	 * Initializes the interceptors.
+	 * 初始化拦截器
 	 * @see #extendInterceptors(java.util.List)
 	 * @see #initInterceptors()
 	 */
 	@Override
 	protected void initApplicationContext() throws BeansException {
-		extendInterceptors(this.interceptors);
-		detectMappedInterceptors(this.adaptedInterceptors);
-		initInterceptors();
+		extendInterceptors(this.interceptors);// 暂时是空方法
+		detectMappedInterceptors(this.adaptedInterceptors);//将xml配置的拦截器设置到对应的map中，在下一步中适配成想要的拦截器
+		initInterceptors();// 初始化指定拦截器，检查MappedInterceptors，有必要的话适配HandlerInterceptor，HandlerInterceptor，WebRequestInterceptor
 	}
 
 	/**
@@ -311,7 +310,22 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * <p>This is called in addition to any {@link MappedInterceptor MappedInterceptors} that may have been provided
 	 * via {@link #setInterceptors}, by default adding all beans of type {@link MappedInterceptor}
 	 * from the current context and its ancestors. Subclasses can override and refine this policy.
-	 * @param mappedInterceptors an empty list to add {@link MappedInterceptor} instances to
+	 * @param mappedInterceptors an empty list to add {@link MappedInterceptor} instances to。
+	 * 检测类型为MappedInterceptor的bean并且将他们加到映射的拦截器中。除了可能通过setInterceptors提供的任何
+	 * MappedInterceptors之外，还调用了此方法，默认情况下，从当前上下文及其祖先添加所有类型为MappedInterceptor的bean。
+	 * 子类可以覆盖和完善此策略。
+	 *
+	 * spring拦截器的设置大概如下：
+	 * <mvc:interceptors>
+	 *     <mvc:interceptor>
+	 *         <mvc:mapping path="/interceptor/**" />
+	 *         <mvc:exclude-mapping path="/interceptor/b/*" />
+	 *         <bean class="com.elim.learn.spring.mvc.interceptor.MyInterceptor" />
+	 *     </mvc:interceptor>
+	 * </mvc:interceptors>
+	 * 每个<mvc:interceptor>会被org.springframework.web.servlet.config.InterceptorsBeanDefinitionParser
+	 * 解析成 「4.1 MappedInterceptor」 对象，注册到 Spring IOC 容器中。然后在下面的方法添加到mappedInterceptors中。
+	 * 对于springboot的拦截器，则是通过注解。之后可以细看
 	 */
 	protected void detectMappedInterceptors(List<HandlerInterceptor> mappedInterceptors) {
 		mappedInterceptors.addAll(
@@ -323,6 +337,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * Initialize the specified interceptors, checking for {@link MappedInterceptor MappedInterceptors} and
 	 * adapting {@link HandlerInterceptor}s and {@link WebRequestInterceptor HandlerInterceptor}s and
 	 * {@link WebRequestInterceptor}s if necessary.
+	 * 初始化指定拦截器，检查MappedInterceptors，有必要的话适配HandlerInterceptor，HandlerInterceptor，WebRequestInterceptor
 	 * @see #setInterceptors
 	 * @see #adaptInterceptor
 	 */
@@ -391,6 +406,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	/**
 	 * Look up a handler for the given request, falling back to the default
 	 * handler if no specific one is found.
+	 * 对于给定的请求查找控制器。如果没有指定控制器被找到，则回滚到默认控制器
 	 * @param request current HTTP request
 	 * @return the corresponding handler instance, or the default handler
 	 * @see #getHandlerInternal
@@ -398,6 +414,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		// 通过请求获取控制器
 		Object handler = getHandlerInternal(request);
 		if (handler == null) {
 			handler = getDefaultHandler();
@@ -406,11 +423,13 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 			return null;
 		}
 		// Bean name or resolved handler?
+		// 如果是控制器的名称，则用应用上下文通过名称来获取控制器
 		if (handler instanceof String) {
 			String handlerName = (String) handler;
 			handler = obtainApplicationContext().getBean(handlerName);
 		}
 
+		// 通过控制器和请求获取控制执行链
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (logger.isTraceEnabled()) {
@@ -470,18 +489,21 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @see #getAdaptedInterceptors()
 	 */
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+		// 获得控制执行链
 		HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain ?
 				(HandlerExecutionChain) handler : new HandlerExecutionChain(handler));
 
+		// 获得请求刘静
 		String lookupPath = this.urlPathHelper.getLookupPathForRequest(request);
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
 			if (interceptor instanceof MappedInterceptor) {
 				MappedInterceptor mappedInterceptor = (MappedInterceptor) interceptor;
+				// 路径若匹配，则添加到链中
 				if (mappedInterceptor.matches(lookupPath, this.pathMatcher)) {
 					chain.addInterceptor(mappedInterceptor.getInterceptor());
 				}
 			}
-			else {
+			else { // 如果不是MappedInterceptor，直接将拦截器添加到链中
 				chain.addInterceptor(interceptor);
 			}
 		}

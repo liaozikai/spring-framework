@@ -16,19 +16,6 @@
 
 package org.springframework.web.context.support;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.env.MutablePropertySources;
@@ -38,13 +25,20 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.RequestScope;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.SessionScope;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.*;
+
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Convenience methods for retrieving the root {@link WebApplicationContext} for
@@ -293,12 +287,14 @@ public abstract class WebApplicationContextUtils {
 	public static void initServletPropertySources(MutablePropertySources sources,
 			@Nullable ServletContext servletContext, @Nullable ServletConfig servletConfig) {
 
+		// 判断sources中是否包含servletContextInitParams和servletConfigInitParams，
+		// 再用ServletContextPropertySource和ServletConfigPropertySource替换其位置
 		Assert.notNull(sources, "'propertySources' must not be null");
-		String name = StandardServletEnvironment.SERVLET_CONTEXT_PROPERTY_SOURCE_NAME;
+		String name = StandardServletEnvironment.SERVLET_CONTEXT_PROPERTY_SOURCE_NAME;// servlet上下文初始参数
 		if (servletContext != null && sources.contains(name) && sources.get(name) instanceof StubPropertySource) {
-			sources.replace(name, new ServletContextPropertySource(name, servletContext));
+			sources.replace(name, new ServletContextPropertySource(name, servletContext)); // 将元素设置到指定的上下文
 		}
-		name = StandardServletEnvironment.SERVLET_CONFIG_PROPERTY_SOURCE_NAME;
+		name = StandardServletEnvironment.SERVLET_CONFIG_PROPERTY_SOURCE_NAME;// servlet配置初始化参数
 		if (servletConfig != null && sources.contains(name) && sources.get(name) instanceof StubPropertySource) {
 			sources.replace(name, new ServletConfigPropertySource(name, servletConfig));
 		}

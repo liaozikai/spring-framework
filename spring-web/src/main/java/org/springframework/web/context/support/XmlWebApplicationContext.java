@@ -16,12 +16,12 @@
 
 package org.springframework.web.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+
+import java.io.IOException;
 
 /**
  * {@link org.springframework.web.context.WebApplicationContext} implementation
@@ -73,6 +73,7 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 
 	/**
 	 * Loads the bean definitions via an XmlBeanDefinitionReader.
+	 * 通过XmlBeanDefinitionReader加载bean定义
 	 * @see org.springframework.beans.factory.xml.XmlBeanDefinitionReader
 	 * @see #initBeanDefinitionReader
 	 * @see #loadBeanDefinitions
@@ -80,18 +81,21 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		// 通过给定bean工厂创建一个xmlbean定义阅读器
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
 		// Configure the bean definition reader with this context's
 		// resource loading environment.
+		// 通过上下文资源加载环境来配置bean定义
 		beanDefinitionReader.setEnvironment(getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
-		initBeanDefinitionReader(beanDefinitionReader);
-		loadBeanDefinitions(beanDefinitionReader);
+		// 允许子类提供阅读器的自定义初始化，之后进行加载bean定义的实际操作
+		initBeanDefinitionReader(beanDefinitionReader);// 这里默认什么都没做
+		loadBeanDefinitions(beanDefinitionReader);// 这里是真正重要的操作
 	}
 
 	/**
@@ -112,6 +116,8 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	 * therefore this method is just supposed to load and/or register bean definitions.
 	 * <p>Delegates to a ResourcePatternResolver for resolving location patterns
 	 * into Resource instances.
+	 * 通过给定的xmlbean定义阅读器加载bean定义。bean工厂的生命周期被refreshBeanFactory方法所控制。
+	 * 因此该方法就只是支持加载和注册bean定义。委托ResourcePatternResolver来解析符合位置匹配模式的资源实例。
 	 * @throws IOException if the required XML document isn't found
 	 * @see #refreshBeanFactory
 	 * @see #getConfigLocations
@@ -120,7 +126,7 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws IOException {
 		String[] configLocations = getConfigLocations();
-		if (configLocations != null) {
+		if (configLocations != null) {// 这边的configLocations的值是WEB-INF下的文件
 			for (String configLocation : configLocations) {
 				reader.loadBeanDefinitions(configLocation);
 			}

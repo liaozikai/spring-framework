@@ -16,10 +16,10 @@
 
 package org.springframework.web.context;
 
-import javax.servlet.ServletContext;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
+
+import javax.servlet.ServletContext;
 
 /**
  * Interface to provide configuration for a web application. This is read-only while
@@ -46,9 +46,11 @@ public interface WebApplicationContext extends ApplicationContext {
 
 	/**
 	 * Context attribute to bind root WebApplicationContext to on successful startup.
+	 * 成功启动时将根WebApplicationContext绑定到的Context属性。
 	 * <p>Note: If the startup of the root context fails, this attribute can contain
 	 * an exception or error as value. Use WebApplicationContextUtils for convenient
 	 * lookup of the root WebApplicationContext.
+	 * 注意，启动失败的话，该属性能够将异常或者错误作为值。使用WebApplicationContextUtils可以方便地查找根WebApplicationContext。
 	 * @see org.springframework.web.context.support.WebApplicationContextUtils#getWebApplicationContext
 	 * @see org.springframework.web.context.support.WebApplicationContextUtils#getRequiredWebApplicationContext
 	 */

@@ -16,14 +16,10 @@
 
 package org.springframework.web.servlet.handler;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import org.springframework.beans.BeansException;
 import org.springframework.util.CollectionUtils;
+
+import java.util.*;
 
 /**
  * Implementation of the {@link org.springframework.web.servlet.HandlerMapping}
@@ -101,13 +97,14 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 	 */
 	@Override
 	public void initApplicationContext() throws BeansException {
-		super.initApplicationContext();
-		registerHandlers(this.urlMap);
+		super.initApplicationContext();// 调用AbstractHandlerMapper的方法，就是将拦截器适配成想要的类型，放进map中
+		registerHandlers(this.urlMap);// 将urlMap中的url和控制器的映射关系放到handlerMap中，并且控制器是被实例化的控制器而不是名称
 	}
 
 	/**
 	 * Register all handlers specified in the URL map for the corresponding paths.
-	 * @param urlMap a Map with URL paths as keys and handler beans or bean names as values
+	 * 注册URL映射中为相应路径指定的所有处理程序。
+	 * @param urlMap a Map with URL paths as keys and handler beans or bean names as values  url作为key而控制器或者控制器名称作为value的map
 	 * @throws BeansException if a handler couldn't be registered
 	 * @throws IllegalStateException if there is a conflicting handler registered
 	 */
@@ -118,14 +115,15 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 		else {
 			urlMap.forEach((url, handler) -> {
 				// Prepend with slash if not already present.
+				// 若是url前面缺少斜杠则加上斜杠
 				if (!url.startsWith("/")) {
 					url = "/" + url;
 				}
 				// Remove whitespace from handler bean name.
-				if (handler instanceof String) {
+				if (handler instanceof String) {// 将控制器名称前后的空白去掉
 					handler = ((String) handler).trim();
 				}
-				registerHandler(url, handler);
+				registerHandler(url, handler);// 将url和handler的映射放到map中
 			});
 			if (logger.isDebugEnabled()) {
 				List<String> patterns = new ArrayList<>();

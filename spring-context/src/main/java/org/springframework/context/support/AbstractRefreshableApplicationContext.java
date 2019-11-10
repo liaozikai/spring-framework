@@ -16,14 +16,14 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Base class for {@link org.springframework.context.ApplicationContext}
@@ -119,18 +119,21 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * This implementation performs an actual refresh of this context's underlying
 	 * bean factory, shutting down the previous bean factory (if any) and
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
+	 * 此实现会实际刷新此上下文的基础bean工厂，关闭先前的bean工厂并且初始化一个新的bean工厂，
+	 * 用于下一阶段上下文的生命周期。
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
 		if (hasBeanFactory()) {
-			destroyBeans();
-			closeBeanFactory();
+			destroyBeans();// 将所有的list和map都清空
+			closeBeanFactory();// 将bean工厂设置为空
 		}
 		try {
+			// 创建默认可排列的bean工厂
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			beanFactory.setSerializationId(getId());
-			customizeBeanFactory(beanFactory);
-			loadBeanDefinitions(beanFactory);
+			customizeBeanFactory(beanFactory);// 设置是否可重写和是否可循环引用
+			loadBeanDefinitions(beanFactory);// 通过bean工厂加载bean定义，这里调用的是xmlWebApplicationContext的方法
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;
 			}
@@ -197,7 +200,10 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * with the {@linkplain #getInternalParentBeanFactory() internal bean factory} of this
 	 * context's parent as parent bean factory. Can be overridden in subclasses,
 	 * for example to customize DefaultListableBeanFactory's settings.
-	 * @return the bean factory for this context
+	 * 针对该上下文，创造一个内部的bean工厂。调用每一个refresh方法。
+	 * 默认实现创建了一个 DefaultListableBeanFactory并且用内部bean工厂作为父类工厂。
+	 * 能够在子类重写该方法，例如自定义DefaultListableBeanFactory的设置。
+	 * @return the bean factory for this context 返回该上下文的bean工厂
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowBeanDefinitionOverriding
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowEagerClassLoading
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowCircularReferences

@@ -16,16 +16,12 @@
 
 package org.springframework.util;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import org.springframework.lang.Nullable;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.springframework.lang.Nullable;
 
 /**
  * {@link PathMatcher} implementation for Ant-style path patterns.
@@ -184,6 +180,7 @@ public class AntPathMatcher implements PathMatcher {
 
 	/**
 	 * Actually match the given {@code path} against the given {@code pattern}.
+	 * 实际上将给定的path与给定的pattern相匹配。
 	 * @param pattern the pattern to match against
 	 * @param path the path String to test
 	 * @param fullMatch whether a full pattern match is required (else a pattern match
@@ -193,6 +190,7 @@ public class AntPathMatcher implements PathMatcher {
 	protected boolean doMatch(String pattern, String path, boolean fullMatch,
 			@Nullable Map<String, String> uriTemplateVariables) {
 
+		// 如果路径和模式不是以路径分割符开头，则返回false
 		if (path.startsWith(this.pathSeparator) != pattern.startsWith(this.pathSeparator)) {
 			return false;
 		}
@@ -411,6 +409,7 @@ public class AntPathMatcher implements PathMatcher {
 
 	/**
 	 * Test whether or not a string matches against a pattern.
+	 * 测试字符串是否与模式匹配。
 	 * @param pattern the pattern to match against (never {@code null})
 	 * @param str the String which must be matched against the pattern (never {@code null})
 	 * @return {@code true} if the string matches against the pattern, or {@code false} otherwise

@@ -16,14 +16,14 @@
 
 package org.springframework.core.annotation;
 
+import org.springframework.core.DecoratingProxy;
+import org.springframework.core.OrderComparator;
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-
-import org.springframework.core.DecoratingProxy;
-import org.springframework.core.OrderComparator;
-import org.springframework.lang.Nullable;
 
 /**
  * {@code AnnotationAwareOrderComparator} is an extension of
@@ -117,6 +117,8 @@ public class AnnotationAwareOrderComparator extends OrderComparator {
 	 * Sort the given List with a default AnnotationAwareOrderComparator.
 	 * <p>Optimized to skip sorting for lists with size 0 or 1,
 	 * in order to avoid unnecessary array extraction.
+	 * 使用默认的AnnotationAwareOrderComparator对给定的列表进行排序。
+	 * 已优化为跳过大小为0或1的列表的排序，以避免不必要的数组提取。
 	 * @param list the List to sort
 	 * @see java.util.List#sort(java.util.Comparator)
 	 */
