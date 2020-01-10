@@ -432,6 +432,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public String[] getBeanNamesForType(@Nullable Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
+		// 首次断点进入这里，但是跟反编译代码有些不一致，但最后都是调用doGetBeanNamesForType方法
 		if (!isConfigurationFrozen() || type == null || !allowEagerInit) {
 			return doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, allowEagerInit);
 		}
@@ -452,6 +453,15 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		List<String> result = new ArrayList<>();
 
 		// Check all bean definitions.
+		// 首次断点进入这里，这个beanDefinitionNames总共有6个，如下：
+		//0 = "org.springframework.context.annotation.internalConfigurationAnnotationProcessor"
+		//1 = "org.springframework.context.annotation.internalAutowiredAnnotationProcessor"
+		//2 = "org.springframework.context.annotation.internalCommonAnnotationProcessor"
+		//3 = "org.springframework.context.event.internalEventListenerProcessor"
+		//4 = "org.springframework.context.event.internalEventListenerFactory"
+		//5 = "springmvctheoryApplication"
+		//6 = "org.springframework.boot.autoconfigure.internalCachingMetadataReaderFactory"
+		// 经过下面的处理，只有internalConfigurationAnnotationProcessor方法了result中;
 		for (String beanName : this.beanDefinitionNames) {
 			// Only consider bean as eligible if the bean name
 			// is not defined as alias for some other bean.
@@ -776,13 +786,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		// 首次断点进来。这里的beanDefinitionNames就是前面设置的128个对象名称，构造list，然后重要的是下面的getBean方法！！！！
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		// Trigger initialization of all non-lazy singleton beans...
 		for (String beanName : beanNames) {
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
-				if (isFactoryBean(beanName)) {
+				if (isFactoryBean(beanName)) {// 如果是工厂beand的话
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						final FactoryBean<?> factory = (FactoryBean<?>) bean;
@@ -800,8 +811,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							getBean(beanName);
 						}
 					}
-				}
-				else {
+			}
+				else {// 首次断点进来。如果非工厂bean，则直接实例化对象，重点就是里面了
 					getBean(beanName);
 				}
 			}
@@ -841,6 +852,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
 				// 校验bean定义
+				// 首次进来，这里就是校验是否有重写方法，首次的话是没有
 				((AbstractBeanDefinition) beanDefinition).validate();
 			}
 			catch (BeanDefinitionValidationException ex) {
@@ -849,6 +861,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 首次进来，beanName是应用名称，也就是springmvctheoryApplication，然后existingDefinition为null
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {// 如果该bean定义在map中存在
 			if (!isAllowBeanDefinitionOverriding()) {
@@ -897,14 +910,32 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {// 如果还没创建过
 				// Still in startup registration phase 仍然处于启动注册阶段
+				// 在初始过程，还没用调用springApplication的run方法之前，就已经有5个对象在里面了，如下：
+				// 0 = {ConcurrentHashMap$MapEntry@3839} "org.springframework.context.annotation.internalConfigurationAnnotationProcessor" -> "Root bean: class [org.springframework.context.annotation.ConfigurationClassPostProcessor]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
+				//1 = {ConcurrentHashMap$MapEntry@3840} "org.springframework.context.event.internalEventListenerFactory" -> "Root bean: class [org.springframework.context.event.DefaultEventListenerFactory]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
+				//2 = {ConcurrentHashMap$MapEntry@3841} "org.springframework.context.event.internalEventListenerProcessor" -> "Root bean: class [org.springframework.context.event.EventListenerMethodProcessor]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
+				//3 = {ConcurrentHashMap$MapEntry@3842} "org.springframework.context.annotation.internalAutowiredAnnotationProcessor" -> "Root bean: class [org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
+				//4 = {ConcurrentHashMap$MapEntry@3843} "springmvctheoryApplication" -> "Generic bean: class [com.lzkspace.springmvctheory.SpringmvctheoryApplication]; scope=singleton; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
+				//5 = {ConcurrentHashMap$MapEntry@3844} "org.springframework.context.annotation.internalCommonAnnotationProcessor" -> "Root bean: class [org.springframework.context.annotation.CommonAnnotationBeanPostProcessor]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
+				// 后来加了这个 "springmvctheoryApplication" -> "Generic bean: class [com.lzkspace.springmvctheory.SpringmvctheoryApplication]; scope=singleton; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null"
 				this.beanDefinitionMap.put(beanName, beanDefinition);
+				// 0 = "org.springframework.context.annotation.internalConfigurationAnnotationProcessor"
+				//1 = "org.springframework.context.annotation.internalAutowiredAnnotationProcessor"
+				//2 = "org.springframework.context.annotation.internalCommonAnnotationProcessor"
+				//3 = "org.springframework.context.event.internalEventListenerProcessor"
+				//4 = "org.springframework.context.event.internalEventListenerFactory"
+				//5 = "springmvctheoryApplication"
 				this.beanDefinitionNames.add(beanName);
+				// 0 = "autoConfigurationReport"
+				//1 = "org.springframework.boot.context.ContextIdApplicationContextInitializer$ContextId"
+				//2 = "springApplicationArguments"
+				//3 = "springBootBanner" 这里本来就没有springmvctheoryApplication，故而没移除
 				this.manualSingletonNames.remove(beanName);
 			}
 			this.frozenBeanDefinitionNames = null;
 		}
 
-		if (existingDefinition != null || containsSingleton(beanName)) {// 如果存在bean定义或者存在该单例，重新设置bean定义
+		if (existingDefinition != null || containsSingleton(beanName)) {// 如果存在bean定义或者存在该单例，重新设置bean定义 // 首次进，这里是跳过的
 			resetBeanDefinition(beanName);
 		}
 	}
@@ -994,7 +1025,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// 注册单例bean
 		super.registerSingleton(beanName, singletonObject);
 
-		if (hasBeanCreationStarted()) {
+		if (hasBeanCreationStarted()) {// 首次断点调用这里，跳过这里
 			// Cannot modify startup-time collection elements anymore (for stable iteration)
 			synchronized (this.beanDefinitionMap) {
 				if (!this.beanDefinitionMap.containsKey(beanName)) {// 该bean定义map不存在指定key，则更新manualSingletonNames
@@ -1009,10 +1040,18 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			// Still in startup registration phase
 			// 仍然处于启动注册阶段
 			if (!this.beanDefinitionMap.containsKey(beanName)) {
+				// 首次断点进入这里，该names的值如下：
+				// 0 = "autoConfigurationReport"
+				//1 = "org.springframework.boot.context.ContextIdApplicationContextInitializer$ContextId"
+				//2 = "springApplicationArguments"
+				//3 = "springBootBanner"
+				//4 = "springBootLoggingSystem"
+				//5 = "environment" 这个就是新增加的
 				this.manualSingletonNames.add(beanName);
 			}
 		}
 
+		// 首次断点，这里什么都没做，因为这里就是空的
 		clearByTypeCache();
 	}
 

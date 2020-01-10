@@ -195,10 +195,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
+		// 首次断点进来，以name为springmvctheoryApplication为例。断点得beanName也为springmvctheoryApplication
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		// 该方法是由spring帮我们创建springmvctheoryApplication对象，但由于是通过代理创建，所以值为:
+		// SpringmvctheoryApplication$$EnhancerBySpringCGLIB$$19c2cd5c@5652
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -210,6 +213,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			// 首次断点进来，这里name和beanName都是一样的springmvctheoryApplication。下面的else就直接跳过了
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
@@ -332,6 +336,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		}
 
 		// Check if required type matches the type of the actual bean instance.
+		// 首次断点进入这里，这个判断也是直接跳过，直接返回bean对象了
 		if (requiredType != null && !requiredType.isInstance(bean)) {
 			try {
 				T convertedBean = getTypeConverter().convertIfNecessary(bean, requiredType);
@@ -814,6 +819,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
+		// 首次断点进来，这个beanPostProcessor是WebApplicationContextServletContextAwareProcessor,是springboot中的类
+		// 而原先已经加载的处理器也就是beanPostProcessors有两个处理器，分别为：
+		// 0 = {ApplicationContextAwareProcessor@4529}
+		// 1 = {ApplicationListenerDetector@4530}
 		Assert.notNull(beanPostProcessor, "BeanPostProcessor must not be null");
 		// Remove from old position, if any
 		this.beanPostProcessors.remove(beanPostProcessor);
@@ -825,6 +834,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			this.hasDestructionAwareBeanPostProcessors = true;
 		}
 		// Add to end of list
+		// 首次断点进入这里，上面两个判断直接跳过，调用到了这里
 		this.beanPostProcessors.add(beanPostProcessor);
 	}
 

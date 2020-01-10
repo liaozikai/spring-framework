@@ -109,6 +109,7 @@ public class StandardAnnotationMetadata extends StandardClassMetadata implements
 
 	@Override
 	public boolean isAnnotated(String annotationName) {
+		// 首次断点进入这里，调用isAnnotated方法，其中，getIntrospectedClass返回的是class com.lzkspace.springmvctheory.SpringmvctheoryApplication，继续进入
 		return (this.annotations.length > 0 &&
 				AnnotatedElementUtils.isAnnotated(getIntrospectedClass(), annotationName));
 	}

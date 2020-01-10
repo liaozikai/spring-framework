@@ -16,17 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -53,13 +44,13 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Indexed;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.*;
 
 /**
  * A component provider that provides candidate components from a base package. Can
@@ -313,6 +304,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// 断点首次进入这里，里面返回的集合的size为0
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -416,8 +408,23 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			// 首次断点进入这里，这里packageSearchPath的值为classpath*:com/lzkspace/springmvctheory/**/*.class，也就是获取该路径下所有编译后的class文件
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 这里就是获取该路径下所有的class文件资源，springmvctheroyApplication的class文件资源如下：
+			//0 = {FileSystemResource@5242} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\SpringmvctheoryApplication.class]"
+			//1 = {FileSystemResource@5243} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\annotation\Controller.class]"
+			//2 = {FileSystemResource@5244} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\annotation\Qualifier.class]"
+			//3 = {FileSystemResource@5245} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\annotation\Repository.class]"
+			//4 = {FileSystemResource@5246} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\annotation\RequestMapping.class]"
+			//5 = {FileSystemResource@5247} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\annotation\Service.class]"
+			//6 = {FileSystemResource@5248} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\dao\UserDao.class]"
+			//7 = {FileSystemResource@5249} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\dao\impl\UserDaoImpl.class]"
+			//8 = {FileSystemResource@5250} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\service\UserService.class]"
+			//9 = {FileSystemResource@5251} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\service\impl\UserServiceImpl.class]"
+			//10 = {FileSystemResource@5252} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\servlet\MyDispatcherServlet.class]"
+			//11 = {FileSystemResource@5253} "file [F:\java\springmvctheory\target\classes\com\lzkspace\springmvctheory\web\UserController.class]"
+			// 断点时，发现下面的循环逻辑都没有经过	candidates.add(sbd) 的操作，故而candidates的size为0
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();

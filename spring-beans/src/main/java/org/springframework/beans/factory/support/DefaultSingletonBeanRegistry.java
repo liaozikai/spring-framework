@@ -123,9 +123,25 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	protected void addSingleton(String beanName, Object singletonObject) {
 		synchronized (this.singletonObjects) {
+			// 首次断点进来，该singletonObjects的值如下：
+			// 0 = {ConcurrentHashMap$MapEntry@4132} "springApplicationArguments" ->
+			//1 = {ConcurrentHashMap$MapEntry@4133} "autoConfigurationReport" ->
+			//2 = {ConcurrentHashMap$MapEntry@4134} "org.springframework.boot.context.ContextIdApplicationContextInitializer$ContextId" ->
+			// 首次传该值 3 = {ConcurrentHashMap$MapEntry@4135} "environment" -> "StandardServletEnvironment {activeProfiles=[], defaultProfiles=[default], propertySources=[ConfigurationPropertySourcesPropertySource {name='configurationProperties'}, StubPropertySource {name='servletConfigInitParams'}, StubPropertySource {name='servletContextInitParams'}, MapPropertySource {name='systemProperties'}, OriginAwareSystemEnvironmentPropertySource {name='systemEnvironment'}, RandomValuePropertySource {name='random'}]}"
+			//4 = {ConcurrentHashMap$MapEntry@4136} "springBootLoggingSystem" ->
+			//5 = {ConcurrentHashMap$MapEntry@4137} "springBootBanner" ->
 			this.singletonObjects.put(beanName, singletonObject);
+			// 首次断点进来，下面两个都是没值的，所以没操作
 			this.singletonFactories.remove(beanName);
 			this.earlySingletonObjects.remove(beanName);
+
+			// 首次断点进来，值如下：
+			//0 = "autoConfigurationReport"
+			//1 = "org.springframework.boot.context.ContextIdApplicationContextInitializer$ContextId"
+			//2 = "springApplicationArguments"
+			//3 = "springBootBanner"
+			//4 = "springBootLoggingSystem"
+			//5 = "environment"
 			this.registeredSingletons.add(beanName);
 		}
 	}

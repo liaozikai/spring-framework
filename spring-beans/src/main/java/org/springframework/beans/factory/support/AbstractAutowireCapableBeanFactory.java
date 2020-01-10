@@ -1200,12 +1200,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Override
 	protected Object getObjectForBeanInstance(
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
-
+		// 首次断点进入这里，该值为null
 		String currentlyCreatedBean = this.currentlyCreatedBean.get();
 		if (currentlyCreatedBean != null) {
 			registerDependentBean(beanName, currentlyCreatedBean);
 		}
 
+		// 首次断点进入这里，直接调用该方法，返回bean实例
 		return super.getObjectForBeanInstance(beanInstance, name, beanName, mbd);
 	}
 

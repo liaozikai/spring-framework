@@ -289,6 +289,9 @@ public abstract class AnnotationConfigUtils {
 
 	@Nullable
 	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, String annotationClassName) {
+		// 这里调用到了StandardAnnotationMetadata的getAnnotationAttributes方法
+		// 进而调用到了 AnnotatedElementUtils.getMergedAnnotationAttributes方法
+		// 进一步调用到了searchWithGetSemantics方法
 		return AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(annotationClassName, false));
 	}
 
@@ -302,6 +305,7 @@ public abstract class AnnotationConfigUtils {
 	static Set<AnnotationAttributes> attributesForRepeatable(
 			AnnotationMetadata metadata, String containerClassName, String annotationClassName) {
 
+		// 这里不知是第几次调用了，但是当注解名称是org.springframework.context.annotation.ComponentScans,返回的result是其属性的集合map，放在了result的list中
 		Set<AnnotationAttributes> result = new LinkedHashSet<>();
 
 		// Direct annotation present?

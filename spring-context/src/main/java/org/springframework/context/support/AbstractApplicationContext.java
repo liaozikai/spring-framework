@@ -494,31 +494,56 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			// 这类设置了很多东西，主要是把环境和系统属性等设置给了beanFactory
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				// 首次断点进来，由于springmvctheoryApplication用的是springboot启动的，所以里面调用的是org.springframework.boot.web.servlet.context的postProcessBeanFactory方法，在这里是没有的
+				// 可以返回去看spring-boot-build的代码，注释在org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext类中
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				// 在上下文汇总调用工厂处理器注册为beans。
+				// 首次断点进来，里面相当复杂。但总结可以得出，通过应用类springmvctheoryApplication为入口，
+				// 获取其相关注解所需用到的所有bean，放到beanDefinitionMap等相关map中，以便后续操作。
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				// 中断bean创建过程，注册bean处理器。首次断点进去，发现beanFactory的beanPostProcessors由原先的4个必成了11个，具体如下：
+				//0 = {ApplicationContextAwareProcessor@12250}
+				//1 = {ApplicationListenerDetector@12251}
+				//2 = {WebApplicationContextServletContextAwareProcessor@12252}
+				//3 = {ConfigurationClassPostProcessor$ImportAwareBeanPostProcessor@12253}
+				//4 = {PostProcessorRegistrationDelegate$BeanPostProcessorChecker@12309}
+				//5 = {ConfigurationPropertiesBindingPostProcessor@12506}
+				//6 = {MethodValidationPostProcessor@12507} "proxyTargetClass=true; optimize=false; opaque=false; exposeProxy=false; frozen=false"
+				//7 = {WebServerFactoryCustomizerBeanPostProcessor@12508}
+				//8 = {ErrorPageRegistrarBeanPostProcessor@12509}
+				//9 = {CommonAnnotationBeanPostProcessor@12379}
+				//10 = {AutowiredAnnotationBeanPostProcessor@12341}
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
+				// 首次断点进入这里，初始化该上下文的信息源。具体到代码中就是在singletonObjects等map中添加"messageSource" -> "Empty MessageSource"该对象
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				// 首次断点进入这里，初始化应用程序事件多播器。具体到代码中就是在springletonObjects等map中添加"applicationEventMulticaster" ->
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				// 首次断点进入这里，在指定上下文之类中初始化其他特殊的beans。具体到代码中就是在ServletWebServerApplicationContext的onRefresh方法，具体看里面注解。该类在springboot中
+				// 该方法的作用，主要是初始化web服务器，如该applicationContext的webServer属性的值被设为TomcatWebServer
 				onRefresh();
 
 				// Check for listener beans and register them.
+				// 首次断点进入这里，这个方法主要是用来设置上下文的监听器的
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				// 重中之重之重之重。前面所有的内容都是为了这一步做准备的，因为这一步就是实例化所有在beanDefinitionMap中存放的所有变量，其中包括
+				// 应用类springmvctheroyApplication。注释写在里面，虽然实例化很多对象，但是我仅以springmvcthoeryApplication为例。
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
@@ -571,15 +596,30 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Initialize any placeholder property sources in the context environment.
 		// 在上下文环境中初始化任何占位符属性源。例如${user.name}，这个在上面((ConfigurableWebEnvironment) env).initPropertySources(sc, null);有调用到
+		// 首次断点进去，发现该propertySource在原先的过程已经有设置，所以跳过了设置
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable: 验证所有标记为必需的属性都是可解析的：
 		// see ConfigurablePropertyResolver#setRequiredProperties 请参见ConfigurablePropertyResolver＃setRequiredProperties
 		// todo 这里说的校验，但是我不知道requiredProperties从哪里设置进去的 已解决
 		// 断点进去，发现requiredProperties一开始就是没有设置的
+		// 首次断点进去，绕过了这个校验
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners... 保存预更新的应用监听器
+		// 首次断点进去，earlyApplicationListeners是null的，applicationListeners把自己的监听器都赋值给前者了。分别是：
+		// 0 = {ServerPortInfoApplicationContextInitializer@3838}
+		//1 = {ConditionEvaluationReportLoggingListener$ConditionEvaluationReportListener@3839}
+		//2 = {ConfigFileApplicationListener@3840}
+		//3 = {AnsiOutputApplicationListener@3841}
+		//4 = {LoggingApplicationListener@3842}
+		//5 = {ClasspathLoggingApplicationListener@3843}
+		//6 = {BackgroundPreinitializer@3844}
+		//7 = {DelegatingApplicationListener@3845}
+		//8 = {ParentContextCloserApplicationListener@3846}
+		//9 = {ClearCachesApplicationListener@3847}
+		//10 = {FileEncodingApplicationListener@3848}
+		//11 = {LiquibaseServiceLocatorApplicationListener@3849}
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		}
@@ -613,7 +653,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// 首次断点进去，这里调用的是GenericApplicationContext的方法，而不是AbstractRefreshableApplicationContext的
 		refreshBeanFactory();
+		// 首次断点进去，该值为org.springframework.beans.factory.support.DefaultListableBeanFactory@3e2055d6: defining beans [org.springframework.context.annotation.internalConfigurationAnnotationProcessor,org.springframework.context.annotation.internalAutowiredAnnotationProcessor,org.springframework.context.annotation.internalCommonAnnotationProcessor,org.springframework.context.event.internalEventListenerProcessor,org.springframework.context.event.internalEventListenerFactory,springmvctheoryApplication]; root of factory hierarchy
 		return getBeanFactory();
 	}
 
@@ -624,6 +666,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
+		// 首次断点进来，该classLoader值为AppClassLoader
 		beanFactory.setBeanClassLoader(getClassLoader());
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
@@ -655,12 +698,16 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Register default environment beans.
+		// 首次断点进来，上面的都没有什么，设置而已，这里是关键了
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
+			// 首次断点进来，注意，这里调用的是两个类DefaultSingletonBeanRegistry，DefaultListableBeanFactory的方法，因为DefaultListableBeanFactory里面调用的是DefaultSingletonBeanRegistry的方法
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
 		}
 		if (!beanFactory.containsLocalBean(SYSTEM_PROPERTIES_BEAN_NAME)) {
+			// 首次断点进入这里，跟ervironment的是一样的，这里是里面的map多了一个叫 systemProperties，同上就不赘述
 			beanFactory.registerSingleton(SYSTEM_PROPERTIES_BEAN_NAME, getEnvironment().getSystemProperties());
 		}
+		// 这里同上
 		if (!beanFactory.containsLocalBean(SYSTEM_ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(SYSTEM_ENVIRONMENT_BEAN_NAME, getEnvironment().getSystemEnvironment());
 		}
@@ -696,6 +743,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Instantiate and register all BeanPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before any instantiation of application beans.
+	 * 实例化和注册所有的beanpost处理器beans，遵守明确的顺序。
+	 * 在应用bean实例化之前必须调用
 	 */
 	protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);
@@ -801,18 +850,39 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
+		// 首次断点进来，下面for循环主要是判断并设置当前AnnotationConfigServletWebServerApplicationContext中的applicationEventMulticaster属性中的defalutRetriever中的applicationListeners的值。
+		// 该值原先size为0，处理后值如下：
+		// 0 = {ServerPortInfoApplicationContextInitializer@5203}
+		//1 = {ConditionEvaluationReportLoggingListener$ConditionEvaluationReportListener@5204}
+		//2 = {ConfigFileApplicationListener@5205}
+		//3 = {AnsiOutputApplicationListener@5206}
+		//4 = {LoggingApplicationListener@5207}
+		//5 = {ClasspathLoggingApplicationListener@5208}
+		//6 = {BackgroundPreinitializer@5209}
+		//7 = {DelegatingApplicationListener@5210}
+		//8 = {ParentContextCloserApplicationListener@5211}
+		//9 = {ClearCachesApplicationListener@5212}
+		//10 = {FileEncodingApplicationListener@5213}
+		//11 = {LiquibaseServiceLocatorApplicationListener@5214}
+		//12 = {SharedMetadataReaderFactoryContextInitializer$SharedMetadataReaderFactoryBean@5215}
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
+		// 获取所有类型为ApplicationListener的监听器，listenerBeanNames的值如下：
+		//0 = "&org.springframework.boot.autoconfigure.internalCachingMetadataReaderFactory"
+		//1 = "mvcResourceUrlProvider"
+		//2 = "springApplicationAdminRegistrar"
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		for (String listenerBeanName : listenerBeanNames) {
+			// 这里跟上面略有不同，这里是添加在了defalutRetriever中的applicationListenerBeans中，值就是上面三个
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
 		// Publish early application events now that we finally have a multicaster...
+		// 首次断点进入这里，这里是直接跳过的
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (earlyEventsToProcess != null) {
@@ -853,6 +923,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Allow for caching all bean definition metadata, not expecting further changes.
 		beanFactory.freezeConfiguration();
 
+		// 首次断点进来，上面的那些直接跳过，重点是这里，实例化所有非延迟初始化的单例对象
 		// Instantiate all remaining (non-lazy-init) singletons.
 		beanFactory.preInstantiateSingletons();
 	}

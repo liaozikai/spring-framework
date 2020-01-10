@@ -16,28 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.net.UnknownHostException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringJoiner;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -58,11 +38,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.env.CompositePropertySource;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.DefaultPropertySourceFactory;
@@ -77,12 +54,13 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.net.UnknownHostException;
+import java.util.*;
 
 /**
  * Parses a {@link Configuration} class definition, populating a collection of
@@ -161,6 +139,7 @@ class ConfigurationClassParser {
 
 
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
+		// 首次断点进入这里，调用parse的方法
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
@@ -197,6 +176,7 @@ class ConfigurationClassParser {
 	}
 
 	protected final void parse(AnnotationMetadata metadata, String beanName) throws IOException {
+		// 首次断点进入这里，调用该方法
 		processConfigurationClass(new ConfigurationClass(metadata, beanName));
 	}
 
@@ -238,12 +218,60 @@ class ConfigurationClassParser {
 		}
 
 		// Recursively process the configuration class and its superclass hierarchy.
+		// 首次断点进入这里，sourceClass的值为class com.lzkspace.springmvctheory.SpringmvctheoryApplication
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {
+			// 首次断点进入这里，configClass值为ConfigurationClass: beanName 'springmvctheoryApplication', com.lzkspace.springmvctheory.SpringmvctheoryApplication
+			// 断点是在也很乱，反正这里就是循环了好多次，然后设置了configurationClasses很多的值，如下
+			// 0 = {LinkedHashMap$Entry@4370} "ConfigurationClass: beanName 'springmvctheoryApplication', com.lzkspace.springmvctheory.SpringmvctheoryApplication" -> "ConfigurationClass: beanName 'springmvctheoryApplication', com.lzkspace.springmvctheory.SpringmvctheoryApplication"
+			//1 = {LinkedHashMap$Entry@4371} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/context/PropertyPlaceholderAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/context/PropertyPlaceholderAutoConfiguration.class]"
+			//2 = {LinkedHashMap$Entry@4372} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/websocket/servlet/WebSocketServletAutoConfiguration$TomcatWebSocketConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/websocket/servlet/WebSocketServletAutoConfiguration$TomcatWebSocketConfiguration.class]"
+			//3 = {LinkedHashMap$Entry@4373} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/websocket/servlet/WebSocketServletAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/websocket/servlet/WebSocketServletAutoConfiguration.class]"
+			//4 = {LinkedHashMap$Entry@4374} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/ServletWebServerFactoryConfiguration$EmbeddedTomcat.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/ServletWebServerFactoryConfiguration$EmbeddedTomcat.class]"
+			//5 = {LinkedHashMap$Entry@4375} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/ServletWebServerFactoryAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/ServletWebServerFactoryAutoConfiguration.class]"
+			//6 = {LinkedHashMap$Entry@4376} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration$DispatcherServletConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration$DispatcherServletConfiguration.class]"
+			//7 = {LinkedHashMap$Entry@4377} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration$DispatcherServletRegistrationConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration$DispatcherServletRegistrationConfiguration.class]"
+			//8 = {LinkedHashMap$Entry@4378} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration.class]"
+			//9 = {LinkedHashMap$Entry@4379} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/task/TaskExecutionAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/task/TaskExecutionAutoConfiguration.class]"
+			//10 = {LinkedHashMap$Entry@4380} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/validation/ValidationAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/validation/ValidationAutoConfiguration.class]"
+			//11 = {LinkedHashMap$Entry@4381} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/error/ErrorMvcAutoConfiguration$WhitelabelErrorViewConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/error/ErrorMvcAutoConfiguration$WhitelabelErrorViewConfiguration.class]"
+			//12 = {LinkedHashMap$Entry@4382} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/error/ErrorMvcAutoConfiguration$DefaultErrorViewResolverConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/error/ErrorMvcAutoConfiguration$DefaultErrorViewResolverConfiguration.class]"
+			//13 = {LinkedHashMap$Entry@4383} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/error/ErrorMvcAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/error/ErrorMvcAutoConfiguration.class]"
+			//14 = {LinkedHashMap$Entry@4384} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter$FaviconConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter$FaviconConfiguration.class]"
+			//15 = {LinkedHashMap$Entry@4385} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$EnableWebMvcConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$EnableWebMvcConfiguration.class]"
+			//16 = {LinkedHashMap$Entry@4386} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter.class]"
+			//17 = {LinkedHashMap$Entry@4387} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration.class]"
+			//18 = {LinkedHashMap$Entry@4388} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jmx/JmxAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jmx/JmxAutoConfiguration.class]"
+			//19 = {LinkedHashMap$Entry@4389} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/admin/SpringApplicationAdminJmxAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/admin/SpringApplicationAdminJmxAutoConfiguration.class]"
+			//20 = {LinkedHashMap$Entry@4390} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/GenericCacheConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/GenericCacheConfiguration.class]"
+			//21 = {LinkedHashMap$Entry@4391} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/SimpleCacheConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/SimpleCacheConfiguration.class]"
+			//22 = {LinkedHashMap$Entry@4392} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/NoOpCacheConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/NoOpCacheConfiguration.class]"
+			//23 = {LinkedHashMap$Entry@4393} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/CacheAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/cache/CacheAutoConfiguration.class]"
+			//24 = {LinkedHashMap$Entry@4394} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/context/ConfigurationPropertiesAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/context/ConfigurationPropertiesAutoConfiguration.class]"
+			//25 = {LinkedHashMap$Entry@4395} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$Jackson2ObjectMapperBuilderCustomizerConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$Jackson2ObjectMapperBuilderCustomizerConfiguration.class]"
+			//26 = {LinkedHashMap$Entry@4396} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$JacksonObjectMapperBuilderConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$JacksonObjectMapperBuilderConfiguration.class]"
+			//27 = {LinkedHashMap$Entry@4397} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$ParameterNamesModuleConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$ParameterNamesModuleConfiguration.class]"
+			//28 = {LinkedHashMap$Entry@4398} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$JacksonObjectMapperConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration$JacksonObjectMapperConfiguration.class]"
+			//29 = {LinkedHashMap$Entry@4399} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/jackson/JacksonAutoConfiguration.class]"
+			//30 = {LinkedHashMap$Entry@4400} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/HttpMessageConvertersAutoConfiguration$StringHttpMessageConverterConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/HttpMessageConvertersAutoConfiguration$StringHttpMessageConverterConfiguration.class]"
+			//31 = {LinkedHashMap$Entry@4401} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/JacksonHttpMessageConvertersConfiguration$MappingJackson2HttpMessageConverterConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/JacksonHttpMessageConvertersConfiguration$MappingJackson2HttpMessageConverterConfiguration.class]"
+			//32 = {LinkedHashMap$Entry@4402} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/JacksonHttpMessageConvertersConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/JacksonHttpMessageConvertersConfiguration.class]"
+			//33 = {LinkedHashMap$Entry@4403} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/HttpMessageConvertersAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/HttpMessageConvertersAutoConfiguration.class]"
+			//34 = {LinkedHashMap$Entry@4404} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/codec/CodecsAutoConfiguration$LoggingCodecConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/codec/CodecsAutoConfiguration$LoggingCodecConfiguration.class]"
+			//35 = {LinkedHashMap$Entry@4405} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/codec/CodecsAutoConfiguration$JacksonCodecConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/codec/CodecsAutoConfiguration$JacksonCodecConfiguration.class]"
+			//36 = {LinkedHashMap$Entry@4406} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/codec/CodecsAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/http/codec/CodecsAutoConfiguration.class]"
+			//37 = {LinkedHashMap$Entry@4407} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/info/ProjectInfoAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/info/ProjectInfoAutoConfiguration.class]"
+			//38 = {LinkedHashMap$Entry@4408} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/task/TaskSchedulingAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/task/TaskSchedulingAutoConfiguration.class]"
+			//39 = {LinkedHashMap$Entry@4409} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/client/RestTemplateAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/client/RestTemplateAutoConfiguration.class]"
+			//40 = {LinkedHashMap$Entry@4410} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/embedded/EmbeddedWebServerFactoryCustomizerAutoConfiguration$TomcatWebServerFactoryCustomizerConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/embedded/EmbeddedWebServerFactoryCustomizerAutoConfiguration$TomcatWebServerFactoryCustomizerConfiguration.class]"
+			//41 = {LinkedHashMap$Entry@4411} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/embedded/EmbeddedWebServerFactoryCustomizerAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/embedded/EmbeddedWebServerFactoryCustomizerAutoConfiguration.class]"
+			//42 = {LinkedHashMap$Entry@4412} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/HttpEncodingAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/HttpEncodingAutoConfiguration.class]"
+			//43 = {LinkedHashMap$Entry@4413} "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/MultipartAutoConfiguration.class]" -> "ConfigurationClass: beanName 'null', class path resource [org/springframework/boot/autoconfigure/web/servlet/MultipartAutoConfiguration.class]"
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass);
 		}
 		while (sourceClass != null);
 
+		// 上面做的所有操作，就是以springmvctheroyApplication类为启动类，获取它的注解，并设置对应注解的属性值。同时，又遍历注解的注解，做相同的设置属性值的操作，最终，设置到configurationClasses中
 		this.configurationClasses.put(configClass, configClass);
 	}
 
@@ -259,12 +287,17 @@ class ConfigurationClassParser {
 	protected final SourceClass doProcessConfigurationClass(ConfigurationClass configClass, SourceClass sourceClass)
 			throws IOException {
 
+		// 首次断点进入这里，判断
+		// configClass的metadata的值是StandardAnnotationMetadata，注释写在里面
+		// 原来里面的方法之前有被调用过，注释看看即可，不过于纠结
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
 			// Recursively process any member (nested) classes first
+			// 首次断点进入这里，里面的memberClasses为null，因此直接跳过不处理
 			processMemberClasses(configClass, sourceClass);
 		}
 
 		// Process any @PropertySource annotations
+		// 断点首次进入这里，由于没有配置PropertySource注解，因此这里直接跳过
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -278,14 +311,28 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @ComponentScan annotations
+		// 首次断点进入这里，获取的是ComponentScans的属性集合，默认如下：
+		//0 = {LinkedHashMap$Entry@3624} "value" ->
+		//1 = {LinkedHashMap$Entry@3625} "includeFilters" ->
+		//2 = {LinkedHashMap$Entry@3626} "excludeFilters" ->
+		//3 = {LinkedHashMap$Entry@3627} "resourcePattern" -> "**/*.class"
+		//4 = {LinkedHashMap$Entry@3628} "lazyInit" -> "false"
+		//5 = {LinkedHashMap$Entry@3629} "basePackages" ->
+		//6 = {LinkedHashMap$Entry@3630} "useDefaultFilters" -> "true"
+		//7 = {LinkedHashMap$Entry@3631} "basePackageClasses" ->
+		//8 = {LinkedHashMap$Entry@3632} "nameGenerator" -> "interface org.springframework.beans.factory.support.BeanNameGenerator"
+		//9 = {LinkedHashMap$Entry@3633} "scopeResolver" -> "class org.springframework.context.annotation.AnnotationScopeMetadataResolver"
+		//10 = {LinkedHashMap$Entry@3634} "scopedProxy" -> "DEFAULT"
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
+				// 所有被扫描的类都要设置该注解对应的相关属性值
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
+
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
@@ -299,10 +346,26 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Process any @Import annotations
+		// 首次断点进来，这个getImports方法主要是用于获取sourceClass类注解或其父类注解中有@import注解的注解，获取import注解的值，如当source是springmvctheoryApplication时，
+		// getImports（sourceClass）得到的内容是：
+		//0 = {ConfigurationClassParser$SourceClass@4212} "org.springframework.boot.autoconfigure.AutoConfigurationPackages$Registrar"
+		//1 = {ConfigurationClassParser$SourceClass@4213} "org.springframework.boot.autoconfigure.AutoConfigurationImportSelector"
+		//2 = {ConfigurationClassParser$SourceClass@4214} "org.springframework.boot.web.servlet.ServletComponentScanRegistrar"
+		// 以下这个processImports方法要特别注意，非常容易被绕进去。
+		// 其功能主要是对于getImports的类进行判断，是registar还是importSelector还是普通配置类。
+		// 如果是ImportSelector的话，那么进行判断，设置selector类对应的环境等属性字段，然后进行处理设置到deferredImportSelectorHandler中
+		// 如果是registrar的话，则将其设置到configClass的importBeanDefinitionRegistrar字段中
+		// 如果是普通配置类，那就调用processConfigurationClass方法再次处理。这里又要注意一下，断点的时候都给绕进去了。。。
+		// 我们原先的调用逻辑是这样的：
+		// AbstractApplicationContext.invokeBeanFactoryPostProcessors到
+		//PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors到
+		//ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry->processConfigBeanDefinitions
+		//ConfigurationClassParser.parse->processConfigurationClass->doProcessConfigurationClass->processImports
+		// 而如果processImports在处理过程中，如果符合判断条件，是会不断调用本身的processImports和processConfigurationClass方法，从而不断递归循环的，只有完全跳出来了才能执行下一步
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
+		// 首次断点进来，得到importResource为null，下面操作直接跳过
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -315,12 +378,16 @@ class ConfigurationClassParser {
 		}
 
 		// Process individual @Bean methods
+		// 首次断点进来，重点说明，该方法很重要，这里是处理注解为bean方法的重要步骤，具体见注解
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
+			// 首次断点进来，configClass的字段设置了有bean注解的方法，具体就是myDispatcherServlet方法
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
 		}
 
 		// Process default methods on interfaces
+		// 首次断点进来，上面retrieveBeanMethodMetadata方法是将当前类的bean注解方法加到configClass中，而下面这个方法时间
+		// configClass的带有bean注解的方法加到configClass中，所以上面和当前这个方法是用来加bean注解方法的
 		processInterfaces(configClass, sourceClass);
 
 		// Process superclass, if any
@@ -389,8 +456,11 @@ class ConfigurationClassParser {
 	 * Retrieve the metadata for all <code>@Bean</code> methods.
 	 */
 	private Set<MethodMetadata> retrieveBeanMethodMetadata(SourceClass sourceClass) {
+		// 首次断点进来，这个sourceClass还是springmvctheoryApplication,该类有个@Bean注解的myDispatcherServlet方法，
 		AnnotationMetadata original = sourceClass.getMetadata();
+		// 首次断点进来，该方法是遍历springmvctheoryApplication类下的所有方法，获取到带有注解Bean的方法，当前仅有myDispatcherServlet
 		Set<MethodMetadata> beanMethods = original.getAnnotatedMethods(Bean.class.getName());
+		// 首次断点进来，下面的判断中，beanMethods方法的长度要大于1，故而判断直接跳过返回
 		if (beanMethods.size() > 1 && original instanceof StandardAnnotationMetadata) {
 			// Try reading the class file via ASM for deterministic declaration order...
 			// Unfortunately, the JVM's standard reflection returns methods in arbitrary
@@ -556,6 +626,7 @@ class ConfigurationClassParser {
 			this.importStack.push(configClass);
 			try {
 				for (SourceClass candidate : importCandidates) {
+					// 这里判断candidate是否是importSelctor的接口实现
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
@@ -572,6 +643,7 @@ class ConfigurationClassParser {
 							processImports(configClass, currentSourceClass, importSourceClasses, false);
 						}
 					}
+					// 这里判断candidate是否是ImportBeanDefinitionRegistrar的接口实现
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions
@@ -585,6 +657,7 @@ class ConfigurationClassParser {
 					else {
 						// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
 						// process it as an @Configuration class
+						// 如果Candidate既不是ImportSelector也不是ImportBeanDefinitionRegistrar类，则按照配置类进行处理
 						this.importStack.registerImport(
 								currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
 						processConfigurationClass(candidate.asConfigClass(configClass));
@@ -630,6 +703,7 @@ class ConfigurationClassParser {
 	private SourceClass asSourceClass(ConfigurationClass configurationClass) throws IOException {
 		AnnotationMetadata metadata = configurationClass.getMetadata();
 		if (metadata instanceof StandardAnnotationMetadata) {
+			// 首次断点进入这里，调用了这里的方法
 			return asSourceClass(((StandardAnnotationMetadata) metadata).getIntrospectedClass());
 		}
 		return asSourceClass(metadata.getClassName());
@@ -645,9 +719,12 @@ class ConfigurationClassParser {
 		try {
 			// Sanity test that we can reflectively read annotations,
 			// including Class attributes; if not -> fall back to ASM
+			// 断点首次进入这里，这里就是获取spirngmvctheroyApplication上面的两个注解，然后进行校验，也就是调用注解中实现的方法
+			// 所以，这个方法是相当重要的
 			for (Annotation ann : classType.getAnnotations()) {
 				AnnotationUtils.validateAnnotation(ann);
 			}
+			// 首次断点进入这里，这里就是构造了一个SourceClass并返回，而classType为class com.lzkspace.springmvctheory.SpringmvctheoryApplication
 			return new SourceClass(classType);
 		}
 		catch (Throwable ex) {

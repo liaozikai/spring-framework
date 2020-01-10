@@ -252,18 +252,24 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
 
 		// 通过注解的类实例化注解泛型类定义
+		// 断点进来，annotatedClass是当前启动应用的类
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
-		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
+		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {// 这里一般不会进来
 			return;
 		}
 
+		// 一开始断点进来，instanceSupplier的值为null
 		abd.setInstanceSupplier(instanceSupplier);
+		// 首次进来，并没有设置什么内容
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		// 而scoperMetadata的scopeName值为singleton
 		abd.setScope(scopeMetadata.getScopeName());
 		// 如果名称不为空，则beanName为给定的名称，否则自动生成。
+		// 首次进来，beanName为应用名称
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
 		// 通过注解机器元数据设置懒加载或依赖对象等
+		// 首次进来，里面所设置的内容全部都是null
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
@@ -279,12 +285,13 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 		for (BeanDefinitionCustomizer customizer : definitionCustomizers) {
-			customizer.customize(abd); // 实现自定义曹组
+			customizer.customize(abd); // 实现自定义操作
 		}
 
 		// 构建bean定义控制器
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		// 通过范围元数据和注册器来重新组装一个定义控制器
+		// 首次进来，metadata.getScopedProxyMode()的值为null，故而直接返回，没有创建代理
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		// 通过定义控制器和注册器来注册bean定义
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);

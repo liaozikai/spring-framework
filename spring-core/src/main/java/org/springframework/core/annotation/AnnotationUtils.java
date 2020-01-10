@@ -16,39 +16,17 @@
 
 package org.springframework.core.annotation;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Repeatable;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Repeatable;
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * General utility methods for working with annotations, handling meta-annotations,
@@ -1048,6 +1026,13 @@ public abstract class AnnotationUtils {
 	 * @see #getAnnotationAttributes(Annotation)
 	 */
 	public static void validateAnnotation(Annotation annotation) {
+		// 首次断点进入这里，这里的annotation是SpringBootApplication，调用到这个getAttributeMethods获得的是里面的是个方法，分别为：
+		//0 = {Method@6854} "public abstract java.lang.String[] org.springframework.boot.autoconfigure.SpringBootApplication.excludeName()"
+		//1 = {Method@6855} "public abstract java.lang.Class[] org.springframework.boot.autoconfigure.SpringBootApplication.exclude()"
+		//2 = {Method@6856} "public abstract java.lang.String[] org.springframework.boot.autoconfigure.SpringBootApplication.scanBasePackages()"
+		//3 = {Method@6857} "public abstract java.lang.Class[] org.springframework.boot.autoconfigure.SpringBootApplication.scanBasePackageClasses()"
+		// 而annotation的值为@org.springframework.boot.autoconfigure.SpringBootApplication(scanBasePackageClasses=[], excludeName=[], exclude=[], scanBasePackages=[])
+		// 所以里面什么都没有，则method.invoke方法也没执行了
 		for (Method method : getAttributeMethods(annotation.annotationType())) {
 			Class<?> returnType = method.getReturnType();
 			if (returnType == Class.class || returnType == Class[].class) {
@@ -1370,10 +1355,12 @@ public abstract class AnnotationUtils {
 	static void postProcessAnnotationAttributes(@Nullable Object annotatedElement,
 			@Nullable AnnotationAttributes attributes, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
 
+		// 断点后发现这个类的作用是，将注解里面所有的属性拿出来，一个一个遍历，如果有设置值的话，就对属性字段进行赋值，如果没有值或者由给定默认值，就不赋值或者赋默认值
 		if (attributes == null) {
 			return;
 		}
 
+		// 这里是属性字段的别名，以ComponentScan为例，只有basePackages和value有别名
 		Class<? extends Annotation> annotationType = attributes.annotationType();
 
 		// Track which attribute values have already been replaced so that we can short

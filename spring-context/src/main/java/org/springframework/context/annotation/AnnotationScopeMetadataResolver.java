@@ -16,12 +16,12 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
 
 /**
  * A {@link ScopeMetadataResolver} implementation that by default checks for
@@ -75,10 +75,13 @@ public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 
 
 	@Override
-	public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {
-		ScopeMetadata metadata = new ScopeMetadata();
+
+	public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {// 这个bean定义还是当前应用的bean，如下：
+		// Generic bean: class [com.lzkspace.springmvctheory.SpringmvctheoryApplication]; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodName=null; destroyMethodName=null
+		ScopeMetadata metadata = new ScopeMetadata();// 该对象的scopeName为singleton，scopedProxyMode为NO
 		if (definition instanceof AnnotatedBeanDefinition) {
 			AnnotatedBeanDefinition annDef = (AnnotatedBeanDefinition) definition;
+			// 白费劲，首次进来，attributes为null
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
 					annDef.getMetadata(), this.scopeAnnotationType);
 			if (attributes != null) {

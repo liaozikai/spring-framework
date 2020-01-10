@@ -16,24 +16,16 @@
 
 package org.springframework.core.annotation;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * General utility methods for finding annotations, meta-annotations, and
@@ -908,6 +900,8 @@ public abstract class AnnotatedElementUtils {
 		if (visited.add(element)) {
 			try {
 				// Start searching within locally declared annotations
+				// 首次断点进来，element就是interface org.springframework.boot.autoconfigure.SpringBootApplication，并且result为null
+				// 这个方法被多次调用过，逻辑理清即可
 				List<Annotation> declaredAnnotations = Arrays.asList(AnnotationUtils.getDeclaredAnnotations(element));
 				T result = searchWithGetSemanticsInAnnotations(element, declaredAnnotations,
 						annotationTypes, annotationName, containerType, processor, visited, metaDepth);
@@ -916,6 +910,10 @@ public abstract class AnnotatedElementUtils {
 				}
 
 				if (element instanceof Class) {  // otherwise getAnnotations doesn't return anything new
+					// 首次进来，element的父类为null，第二次进来也是为null
+					// element为spring boot应用上面定义的两个注解。分别为：
+					// @SpringBootApplication
+					// @ServletComponentScan
 					Class<?> superclass = ((Class<?>) element).getSuperclass();
 					if (superclass != null && superclass != Object.class) {
 						List<Annotation> inheritedAnnotations = new LinkedList<>();
